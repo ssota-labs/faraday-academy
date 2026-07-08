@@ -1,0 +1,183 @@
+# Authoring reference
+
+A lesson is a React component tree assembled from Faraday blocks (which are built
+on shadcn / Base UI). Canonical shape:
+
+The interactive centerpiece is usually a `<Workbench>` — a live canvas with a
+floating control panel of `<ControlGroup>` sections (this is what the bundled demos
+use). Canonical shape:
+
+```tsx
+import { useMemo, useState } from "react";
+import { Lesson, Prose, Workbench, ControlGroup, ParamSlider, Scrubber, Quiz, Callout } from "@/faraday/blocks";
+import { useStepper } from "@/faraday/runtime";
+
+export default function MyLesson() {
+  const [param, setParam] = useState(4);
+  const frames = useMemo(() => buildFrames(param), [param]); // your model
+  const step = useStepper(frames.length);
+
+  return (
+    <Lesson topic="Topic" title="…" lead="one sentence on what the reader learns">
+      <Prose><p>Set up the intuition.</p></Prose>
+
+      <Workbench
+        title="Canvas"
+        panelTitle="Controls"
+        onReset={() => setParam(4)}
+        controls={
+          <>
+            <ControlGroup label="Playback">
+              <Scrubber
+                index={step.index} total={step.total} playing={step.playing}
+                atStart={step.atStart} atEnd={step.atEnd}
+                onPrev={step.prev} onNext={step.next}
+                onTogglePlay={step.togglePlay} onSeek={step.setIndex}
+              />
+            </ControlGroup>
+            <ControlGroup label="Parameters">
+              <ParamSlider label="A parameter" value={param} min={2} max={12} onChange={setParam} />
+            </ControlGroup>
+          </>
+        }
+      >
+        <MyVisual frame={frames[step.index]} />   {/* an <svg> etc. */}
+      </Workbench>
+
+      <Callout title="Key idea">The one thing to remember.</Callout>
+
+      <Quiz question="…" options={[
+        { label: "wrong", hint: "why not" },
+        { label: "right", correct: true },
+      ]} />
+    </Lesson>
+  );
+}
+```
+
+For a single figure without controls, use `<Stage caption="…">…</Stage>` instead of
+`<Workbench>`.
+
+## Two shapes of lesson: stepped vs continuous
+
+**Stepped** — something unfolds over discrete moments (an algorithm, a proof).
+Precompute an ordered array of immutable frames and walk it with `useStepper` +
+`<Scrubber>`. See `src/lesson/lesson.tsx` (bubble sort).
+
+**Continuous** — the reader turns knobs and the picture responds live (a function
+plot, a physics parameter). No `useStepper` needed: hold params in `useState`,
+`useMemo` the visualization, drive with `<ParamSlider>` / `<ParamSwitch>` /
+`<Segmented>`.
+
+## Visualizations & theme colors
+
+`<Stage>` frames whatever you put inside. Use inline SVG with a fixed `viewBox`
+and `width: 100%` (the stylesheet sizes it). Pull colors from theme tokens so
+light/dark both work:
+
+| Token | Use |
+|---|---|
+| `var(--primary)` | primary highlight / active element |
+| `var(--destructive)` | error / attention |
+| `var(--chart-1..5)` | data-series colors |
+| `var(--muted-foreground)` | inert marks, gridlines |
+| `var(--border)` | separators |
+
+In SVG: `style={{ fill: "var(--primary)" }}`. In HTML: semantic Tailwind classes
+(`text-primary`, `bg-card`, `text-muted-foreground`). Never hardcode `#hex` or
+`text-blue-500`.
+
+## Adding a shadcn component you need
+
+The raw primitives already vendored are in `src/faraday/ui/` (button, card, slider,
+tabs, accordion, alert, badge, radio-group, toggle-group, switch, progress,
+separator, label, tooltip). Compose those. Do **not** run `shadcn add` — it writes
+into the locked `src/faraday/` tree and will fail `pnpm check`. If you truly need a
+missing primitive, note it in your summary.
+
+## 3D lessons (Three.js) — opt-in
+
+Scaffold with `faraday new <name> --3d` to include a Three.js (React Three Fiber)
+block + a solar-system demo. **Without `--3d`, three is never installed or bundled**
+— 2D lessons stay light. Import the 3D block from `@/faraday/three`:
+
+- `<Scene3D mood height? camera? controls? autoRotate?>` — a preconfigured R3F
+  canvas (perspective camera, OrbitControls). Drop it into a `<Workbench>` center;
+  bind panel controls to scene state via React. **`mood` is required for domain
+  scenes** — it sets background, fog, lighting, and decor to match the subject:
+  `"space"` (dark + starfield), `"cell"` (ethereal teal haze + motes), `"lab"`
+  (bright + grid), `"physics"` (dim + grid), `"abstract"` (minimal dark), `"neutral"`
+  (transparent, UI demos only). See the MANDATORY rule in AGENTS.md.
+- `<Body radius color emissive?>`, `<OrbitPath a e?>`, `<Planet a e? size? speed?>`,
+  `<Label3D position>` — procedural helpers. Compose these for astronomy, physics,
+  chemistry (atoms/molecules), math surfaces, or a stylized cell — **all
+  code-generated, no assets.** For custom geometry, drop `<mesh>`/`<sphereGeometry>`
+  etc. (R3F intrinsics) directly inside `<Scene3D>`.
+
+Note: three uses fixed colors, not theme CSS vars (three can't parse `oklch`).
+Pass hex colors to 3D objects.
+
+Note: a `<Scene3D>` (or `<Chart>`) only paints once its container has a non-zero
+width — both defer rendering via a ResizeObserver so they never mount at 0px. On a
+normal page load this is instant; in a headless/embedded harness that starts
+collapsed, the canvas can look blank until the first layout — dispatching a window
+`resize` forces it. This is expected, not a bug.
+
+**Examples**: `docs/examples/` holds ready-to-copy 3D lessons (e.g. `cell.tsx` — a
+procedural animal cell with the `"cell"` mood). Copy one into `src/lesson/lesson.tsx`
+as a starting point.
+
+### Detailed models → load an asset (`<Model>`)
+
+For photoreal/organic shapes (anatomy, animals, machinery) that aren't practical to
+code-generate, use the `<Model>` block — it wraps `useGLTF` + animation playback:
+
+```tsx
+import { Scene3D, Model } from "@/faraday/three";
+<Scene3D mood="lab"><Model url="/models/fox.glb" scale={0.05} animation="Walk" /></Scene3D>
+```
+
+Drop the `.glb` in `public/models/`. Curated open-license sources: **NASA 3D
+Resources**, **Smithsonian 3D**, **NIH 3D / BioModels**, **Poly Haven** (CC0),
+Khronos glTF sample assets (CC0), and CC-licensed **Sketchfab**. Keep files small;
+prefer procedural when it's clear enough. See `docs/examples/model.tsx` (a CC0 fox).
+
+### Physics (`--physics`)
+
+Scaffold with `faraday new --physics` for the Rapier engine (implies `--3d`). Wrap
+scene bodies in `<Physics>` from `@react-three/rapier`:
+
+```tsx
+import { Physics, RigidBody } from "@react-three/rapier";
+<Scene3D mood="physics"><Physics gravity={[0,-9.8,0]}>
+  <RigidBody type="fixed"><mesh><boxGeometry args={[16,0.5,16]} /></mesh></RigidBody>
+  <RigidBody colliders="ball" restitution={0.7} position={[0,9,0]}><mesh><sphereGeometry args={[0.6]} /></mesh></RigidBody>
+</Physics></Scene3D>
+```
+
+Use physics only for genuine dynamics (collisions, joints, stacking). For scripted
+motion (orbits, pendulums-as-math), integrate in the render loop instead — it's lighter.
+
+## Courses — bundle lessons into a textbook
+
+`<Course>` (from `@/faraday/runtime`) turns several lessons into a navigable textbook
+with chapter nav, prev/next, and `#hash` deep links. Make it your default export:
+
+```tsx
+import { Course } from "@/faraday/runtime";
+export default function MyCourse() {
+  return <Course title="…" chapters={[
+    { slug: "intro", title: "Intro", element: <IntroChapter /> },   // each chapter is a normal <Lesson>
+    { slug: "next",  title: "Next",  element: <NextChapter /> },
+  ]} />;
+}
+```
+
+Keep chapter components in `src/lesson/chapters/`. See `docs/examples/course.tsx`.
+
+## Checking your work
+
+- `pnpm check` — structure + integrity gates.
+- `pnpm dev` — serve and drive the controls.
+- `pnpm build` — static bundle in `dist/` (what a future platform would deploy).
+- `pnpm typecheck` — optional TypeScript check.
