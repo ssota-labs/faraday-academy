@@ -3,7 +3,7 @@
 // to be edited: the grounding + persona live in `buildInstructions`. Shape mirrors
 // mirror-dimension's dimension-agent (WorkflowAgent + `getWritable` stream),
 // trimmed to a single tutoring loop — no tools/compaction/cache-breakpoints yet
-// (see specs/tutor-ai.md §1, §6 for what comes later).
+// (compaction, tools/RAG, and grounding gates come later).
 //
 // "Durable" means: the run survives a page refresh, a network drop, or a
 // serverless timeout. The client (WorkflowChatTransport) reconnects to the same

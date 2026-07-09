@@ -109,6 +109,13 @@ durable의 의미: 새로고침/타임아웃/네트워크 단절이 나도 `Work
    - **nitro 버전**: 안정 `3.0.0`은 deprecated이고 `serverDir` 유저 config가 없다(그 버전엔 resolved 옵션).
      workflow 문서가 요구하는 `serverDir`를 지원하는 **현재 beta(`3.0.260610-beta`, `latest`)로 핀**. 안정
      3.0.x가 나오면 교체.
+   - **[dev 블로커, 클린세션 검증에서 발견·수정] `nodeLinker: hoisted` 필수.** Workflow DevKit의 step
+     번들러(`@workflow/builders` esbuild, `format:'esm'`)가 pnpm 중첩 `.pnpm` 스토어를 통해 resolve할 때
+     `ajv`의 내부 `require("./core.js")`를 잘못 external 처리 → `pnpm dev`에서 매 모델 step이 500(“Dynamic
+     require ... is not supported”), 키가 있어도 **튜터가 절대 응답 안 함**. `prod vite build`는 정상(ajv를
+     `.output/server`에 번들). 해결: 스캐폴드가 `pnpm-workspace.yaml`에 `nodeLinker: hoisted`를 넣어
+     node_modules를 평탄화 → ajv 상대 require가 정상 resolve/번들. **튜터 프로젝트에만** 적용(비튜터는 strict
+     pnpm 유지). 검증: dev에서 Dynamic-require 0·핸들러에러 0, `GatewayAuthenticationError`(=키만 없음)까지 도달.
 2. **`useChat`/`WorkflowChatTransport`** (열린 항목 2 해소) — `useChat({ transport })` → `{ messages,
    sendMessage, status, stop }`, `status ∈ {ready,submitted,streaming,error}`. `WorkflowChatTransport({
    api, prepareSendMessagesRequest })`가 `x-workflow-run-id`로 자동 재접속. 서버 `start()`→`run.readable`,

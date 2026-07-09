@@ -7,7 +7,7 @@
 //
 // Grounding: the lesson `context` + `title` ride along on every request
 // (prepareSendMessagesRequest -> body) and the workflow folds them into the
-// system prompt. See specs/tutor-ai.md §4.
+// system prompt (grounding lives in workflows/tutor-agent.ts).
 import { useChat } from "@ai-sdk/react";
 import { WorkflowChatTransport } from "@ai-sdk/workflow";
 import { useMemo } from "react";

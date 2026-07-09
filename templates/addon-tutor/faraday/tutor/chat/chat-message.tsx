@@ -1,5 +1,5 @@
 // Render one AI SDK UIMessage as a Message + Bubble. v0 shows text parts only
-// (reasoning/tool parts are dropped for now — see specs/tutor-ai.md §6). User
+// (reasoning/tool parts are dropped for now). User
 // turns align end with the primary bubble; the tutor aligns start, muted.
 import type { UIMessage } from "ai";
 import { Message, MessageContent } from "./message";

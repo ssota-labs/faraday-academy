@@ -2,7 +2,7 @@
 // dashboard (roster + this learner's analytics). The recorder subscribes to the
 // SAME core event stream (onEvent). Copy into src/lesson/lesson.tsx to try it.
 import { CurriculumHost, map2dPack, type Curriculum } from "@/faraday/world";
-import { useLmsRecorder, ProgressDashboard, type Learner } from "@/faraday/lms";
+import { useLmsRecorder, ProgressDashboard, summarize, type Learner } from "@/faraday/lms";
 import { Compare, Lesson, Prose, Quiz } from "@/faraday/blocks";
 
 function Stop({ title, body }: { title: string; body: string }) {
@@ -33,11 +33,9 @@ const mockLearners: Learner[] = [
 
 export default function LmsCourse() {
   const rec = useLmsRecorder("lms-demo");
-  const you: Learner = {
-    id: "you",
-    name: "You",
-    summary: { events: rec.events.length, xp: rec.events.at(-1)?.xp ?? 0, done: rec.events.at(-1)?.done ?? 0, startedAt: rec.events[0]?.at ?? null, lastActiveAt: rec.events.at(-1)?.at ?? null, activeMs: 0, perNode: {} },
-  };
+  // summarize() (exported from @/faraday/lms) derives the whole LmsSummary — no
+  // need to hand-build it.
+  const you: Learner = { id: "you", name: "You", summary: summarize(rec.events) };
   return (
     <Compare
       items={[

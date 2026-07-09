@@ -132,10 +132,28 @@ export async function generateLesson(opts) {
     await copyDirectory(path.join(src.addonTutor, "api"), path.join(targetDir, "api"));
     await copyDirectory(path.join(src.addonTutor, "workflows"), path.join(targetDir, "workflows"));
     await copyDirectory(path.join(src.addonTutor, "examples"), path.join(targetDir, "docs", "examples"));
+    // discoverability: ship a focused tutor guide + point the docs an author reads at it
+    await fs.copyFile(path.join(src.addonTutor, "docs", "tutor.md"), path.join(targetDir, "docs", "tutor.md"));
+    const tutorPointer = "\n> **AI Tutor:** this project was scaffolded with `--tutor` — embed `<Tutor>` from `@/faraday/tutor`. See [docs/tutor.md](docs/tutor.md) and [docs/examples/tutor.tsx](docs/examples/tutor.tsx).\n";
+    for (const doc of ["docs/authoring.md", "AGENTS.md"]) {
+      await fs.appendFile(path.join(targetDir, doc), tutorPointer).catch(() => {});
+    }
     await fs.copyFile(path.join(src.addonTutor, "vite.config.ts"), path.join(targetDir, "vite.config.ts"));
     await fs.copyFile(path.join(src.addonTutor, "env.example"), path.join(targetDir, "env.example"));
     // widen the node tsconfig so `tsc -b` also typechecks the api/ + workflows/ server files
     await fs.copyFile(path.join(src.addonTutor, "tsconfig.node.json"), path.join(targetDir, "tsconfig.node.json"));
+    // CRITICAL for tutor dev: the Workflow DevKit's step bundler (esbuild) mis-externalizes
+    // ajv's internal `require("./core.js")` when it resolves through pnpm's nested `.pnpm`
+    // store, so `pnpm dev` 500s on every model step ("Dynamic require ... is not supported").
+    // A flat (hoisted) node_modules makes ajv's relative requires resolve + bundle cleanly.
+    // Tutor-only — non-tutor lessons keep pnpm's strict isolation. (prod `vite build` is fine
+    // either way; this is a dev-server fix.)
+    await fs.appendFile(
+      path.join(targetDir, "pnpm-workspace.yaml"),
+      "\n# Tutor: flatten node_modules so the Workflow step bundler resolves ajv's\n" +
+        "# dynamic requires in dev (nested .pnpm paths otherwise 500 the model step).\n" +
+        "nodeLinker: hoisted\n",
+    );
   }
 
   // 4. inject package name (+ three deps for 3D lessons)

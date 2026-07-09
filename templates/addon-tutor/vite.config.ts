@@ -9,7 +9,7 @@ import { workflow } from "workflow/vite";
 // framework that serves the `api/**` routes, and the `workflow()` plugin compiles
 // the `"use workflow"` / `"use step"` directives into durable runs. `pnpm dev`
 // runs both together (default http://localhost:3000). Deploys to Vercel with no
-// extra config. See specs/tutor-ai.md and node_modules/workflow/docs/getting-started/vite.mdx.
+// extra config. See node_modules/workflow/docs/getting-started/vite.mdx.
 export default defineConfig({
   plugins: [react(), tailwindcss(), nitro(), workflow()],
   // Nitro scans the project root for `api/**` route handlers + `workflows/`.

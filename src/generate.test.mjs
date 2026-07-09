@@ -71,9 +71,13 @@ test("generateLesson --tutor adds the durable server layer + locks the chat UI",
     "env.example",
     "tsconfig.node.json",
     "docs/examples/tutor.tsx",
+    "docs/tutor.md",
   ]) {
     assert.ok(await exists(path.join(target, rel)), `missing ${rel}`);
   }
+
+  // the dev-crash fix: workflow step bundler needs a flat node_modules (nodeLinker)
+  assert.match(await read(target, "pnpm-workspace.yaml"), /nodeLinker:\s*hoisted/);
 
   // ...and the chat UI is vendored INTO the locked tree (in the manifest)
   assert.ok(await exists(path.join(target, "src/faraday/tutor/tutor.tsx")));
