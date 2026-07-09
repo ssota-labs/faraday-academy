@@ -99,22 +99,39 @@ durable의 의미: 새로고침/타임아웃/네트워크 단절이 나도 `Work
 
 ---
 
-## 5. 열린 항목 (빌드 시 bundled 문서로 확정)
+## 5. 빌드 중 확정된 사실 (버전 매치 bundled 문서 + 실제 스캐폴드 검증)
 
-1. **`workflow/vite` + `api/` 로컬 구동 정확한 셋업** — `node_modules/workflow/docs/getting-started/`(vite/…)
-   와 `@ai-sdk/workflow` docs를 설치 후 grep. (Vite dev가 api 라우트를 어떻게 서빙하는지 — `vercel dev`
-   병행 여부 포함.)
-2. **`useChat`/`WorkflowChatTransport` 정확한 시그니처** — 버전 매치 bundled 문서로(기억 금지, useChat은 자주 바뀜).
-3. **AI Gateway 인증** — 로컬 BYO 키 vs 플랫폼 OIDC.
-4. 챗 UI 이식 시 우리 `.cn-*` 스타일과의 정합(대개 동일 계열이라 소).
+1. **Vite durable 셋업 = Vite + Nitro + Workflow** (열린 항목 1 해소). `workflow/vite` 단독이 아니라
+   **Nitro**가 서버 프레임워크로 `api/**` 라우트를 서빙한다. `pnpm dev`(=vite) 하나가 프론트+api를 함께
+   구동(로컬 :3000, 점유 시 자동 증가) — **`vercel dev` 불필요**. 배포는 Vercel 무설정.
+   - `vite.config.ts`: `plugins: [react(), tailwindcss(), nitro(), workflow()]` + `nitro: { serverDir: "./" }`.
+   - api 라우트는 **h3 핸들러**: `defineEventHandler`, `event.req.json()`, `getRouterParam`/`getQuery` (`nitro/h3`).
+   - **nitro 버전**: 안정 `3.0.0`은 deprecated이고 `serverDir` 유저 config가 없다(그 버전엔 resolved 옵션).
+     workflow 문서가 요구하는 `serverDir`를 지원하는 **현재 beta(`3.0.260610-beta`, `latest`)로 핀**. 안정
+     3.0.x가 나오면 교체.
+2. **`useChat`/`WorkflowChatTransport`** (열린 항목 2 해소) — `useChat({ transport })` → `{ messages,
+   sendMessage, status, stop }`, `status ∈ {ready,submitted,streaming,error}`. `WorkflowChatTransport({
+   api, prepareSendMessagesRequest })`가 `x-workflow-run-id`로 자동 재접속. 서버 `start()`→`run.readable`,
+   재연결은 `getRun(id).getReadable({startIndex})`. **주의**: `convertToModelMessages`는 **async**(설치 버전
+   `ai@7.0.17`) — `await` 필요.
+3. **AI Gateway 인증** (열린 항목 3 해소) — 로컬 `.env.local`의 `AI_GATEWAY_API_KEY`(BYO), Vercel은 OIDC 자동.
+   모델 문자열은 `ai`가 내장 gateway로 해석(별도 `@ai-sdk/gateway` 명시 불필요, `ai`가 transitive로 가져옴).
+4. 챗 UI 이식 — `bubble`/`message`만 그대로 이식(base-ui+cva, 자립적). `message-scroller`는 미벤더 shadcn
+   프리미티브 의존이라 **경량 auto-scroll**로 대체, `chat-input`은 이미지업로드/모델셀렉터 제거한 경량판.
+
+**검증**: `faraday new --tutor` → `pnpm install/typecheck/build` 통과, `pnpm dev`에서 workflow 컴파일
+(“1 workflow, 9 steps”), `POST /api/chat` 200 + `x-workflow-run-id` + SSE(`type:start/start-step`),
+`GET /api/chat/{runId}/stream?startIndex=0` 같은 run 재생(durable resume). 실제 토큰 스트림만 실 키 필요.
 
 ---
 
 ## 6. 단계
 
-- **v0 (지금 착수 후보)**: `--tutor` 스캐폴드 — Vite+workflow, `api/chat`(+reconnect), `runTutorAgent`
-  (WorkflowAgent, 레슨 콘텐츠 그라운딩), 이식된 챗 UI + `<Tutor>`(useChat+WorkflowChatTransport),
-  로컬 BYO Gateway 키로 durable 동작. compaction/캐시 최적화·RAG·게이트는 후속.
+- **v0 — 완료 (built & verified)**: `--tutor` 스캐폴드 = Vite+**Nitro**+Workflow. `api/chat`(+`[runId]/stream`
+  재연결), `workflows/tutor-agent.ts`(WorkflowAgent, 레슨 콘텐츠 그라운딩·소크라테스·정답 누출 금지),
+  벤더·잠금된 챗 UI + `<Tutor>`(useChat+WorkflowChatTransport), 로컬 BYO Gateway 키로 durable 동작.
+  정적 2D/3D 레슨은 서버 없이 그대로. **후속**: compaction/롤링 캐시 브레이크포인트, RAG 툴(`'use step'`),
+  그라운딩·리허설 게이트, reasoning/tool 파트 렌더, 세션 영속(리로드 복원).
 - **platform**: 멀티테넌트 Vercel, 우리 Gateway 키(튜터 지불), Connect 결제, 학생 인증 = VISION Phase 2~3.
 
 ---
