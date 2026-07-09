@@ -1,0 +1,83 @@
+# The AI tutor (`--tutor`)
+
+`faraday new <name> --tutor` turns the lesson app into a Vite + Nitro + Workflow
+hybrid and vendors a `<Tutor>` component. It follows Vercel's AI SDK design and
+runs a **Workflow DevKit durable agent**: a reply survives a page refresh, a
+network drop, or a serverless timeout and resumes mid-answer.
+
+## Setup (one time, local)
+
+The tutor calls a model through the Vercel AI Gateway, so it needs a key locally:
+
+```bash
+cp env.example .env.local     # then paste your AI_GATEWAY_API_KEY
+pnpm dev
+```
+
+Get a key at https://vercel.com/dashboard → AI Gateway → API keys. `.env.local`
+is git-ignored — **never commit a real key**. On Vercel, no key is needed:
+deploys authenticate to the Gateway via OIDC automatically. Without a key the UI
+still loads and the stream starts, but the model step fails with a Gateway auth
+error — expected until you add the key.
+
+## Embed it
+
+Import `<Tutor>` from `@/faraday/tutor` and ground it in the surrounding content:
+
+```tsx
+import { Tutor } from "@/faraday/tutor";
+
+<Tutor
+  title="Binary-search tutor"
+  context={LESSON_TEXT}   // the tutor answers from this and won't leak quiz answers
+  greeting="Hi! Ask me anything about binary search."
+/>
+```
+
+Props (all optional): `context` (grounding text), `title`, `greeting`,
+`className`. A full example is in `docs/examples/tutor.tsx` — copy it into
+`src/lesson/lesson.tsx` to try it.
+
+**Grounding is the point.** Pass the lesson text (or the relevant slice) as
+`context`. The scaffolded system prompt instructs the tutor to answer *from* that
+material, steer back when a question falls outside it, and stay Socratic — hint
+and ask rather than dump answers, never leak quiz/exercise solutions.
+
+## Wiring (rarely touched — but `workflows/` is yours)
+
+- `workflows/tutor-agent.ts` — the durable agent **and its system prompt**. Edit
+  here to change persona, rules, or the model (`MODEL_ID`) and reasoning level.
+  This file is in the author zone, not the locked tree.
+- `api/chat.post.ts` + `api/chat/[runId]/stream.get.ts` — server routes (start a
+  run; reconnect to it). Nitro serves these under `/api/`.
+- `src/faraday/tutor/**` — the chat UI + `<Tutor>` client. **Vendored + locked**
+  (don't edit; `faraday check` verifies it).
+
+Static (non-tutor) lessons stay server-free; only `--tutor` adds the `api/` +
+`workflows/` layer.
+
+## Model, thinking, caching (defaults)
+
+The scaffolded `MODEL_ID` is a reasoning model that streams its thinking into a
+collapsible "Thinking" block in the chat, and supports **implicit prompt
+caching**: because `buildInstructions` is deterministic (no timestamps/random),
+the system prompt + grounding prefix is byte-stable across a conversation, so each
+turn cache-reads the growing prior prefix (no explicit cache breakpoints). Keep
+the prefix stable when you edit the prompt. If you switch to an Anthropic model,
+caching needs explicit `cache_control` breakpoints instead.
+
+## Verifying the tutor works
+
+The preview/browser tools don't handle SSE well — verify the API with `curl`:
+
+```bash
+curl -sS -N --max-time 90 -X POST "http://localhost:$PORT/api/chat" \
+  -H 'content-type: application/json' \
+  --data '{"messages":[{"id":"1","role":"user","parts":[{"type":"text","text":"<a question>"}]}],"context":"<lesson text>","title":"<title>"}'
+```
+
+Expect `text-delta` tokens streaming a grounded, Socratic answer, and
+`reasoning-*` events if thinking is on. Use the browser only for the visual
+"Thinking" block. Known gotcha: the tutor needs `nodeLinker: hoisted` in
+`pnpm-workspace.yaml` (the scaffold adds it) — without it, dev throws an ajv
+"Dynamic require … is not supported" 500 and the model step never responds.

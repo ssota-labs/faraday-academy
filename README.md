@@ -1,59 +1,213 @@
-# Primer — interactive-lesson scaffolder (CLI phase)
+# Faraday
 
-> Working codename. This is the **CLI-only phase** of an AI-authored interactive
-> textbook, modeled on [toolcraft](../toolcraft-analysis) (self-contained
-> vendoring) and headed toward a [mirror-dimension](../mirror-dimension)-style
-> web platform later.
+> **Turn a lesson you already teach into a high-quality interactive textbook — with a grounded AI tutor — in one shot.**
+>
+> Status: CLI phase (Phase 0 complete, building toward GTM Stage 1). See
+> [VISION.md](VISION.md) for the architecture and [GTM.md](GTM.md) for the
+> customer strategy. Working codename; modeled on toolcraft-style self-contained
+> vendoring, headed toward a mirror-dimension-style web platform later.
 
-Primer is a pure **scaffolder**. `primer new <name>` produces a self-contained
-Vite + React app for **one interactive lesson** — no npm publish, no workspace.
-A lesson runtime and a set of interactive blocks are *vendored* into the app
-under `src/primer/**` and locked with a SHA-256 manifest; the authoring agent
-writes only in `src/lesson/**`.
+Faraday is a **scaffolder** for AI-authored interactive courseware. You (or your
+coding agent) run one command and get a self-contained Vite + React app for a
+lesson — a live canvas the reader *manipulates*, not a wall of text. Add a
+durable, grounded **AI tutor** with a flag. Bundle lessons into a **curriculum or
+game-like world**, wire in **LMS** progress tracking, and deploy. No workspace, no
+npm publish, no backend unless you ask for one.
 
-## Loop this enables
+The name of the game is the **Studio Seed**: a locked, vendored runtime does the
+hard, correctness-critical parts; you (or your agent) get a wide-open authoring
+zone; and quality gates enforce the contract before anything ships.
 
-In a clean session, an agent (Claude Code) can:
+---
+
+## Who this is for (right now)
+
+GTM **Stage 1** is early-adopter *creators* — tutors, TAs, teachers, course
+authors — who **already run a coding agent** (Claude Code, Codex). Zero tool
+friction: you already have the agent, Faraday is just a scaffolder it drives.
+
+The fastest path is to install a **Faraday plugin** for your agent and let it do
+the work:
+
+- **Claude Code** → [`plugins/claude-code/`](plugins/claude-code/) — a plugin
+  (skill + `/faraday-*` slash commands + an authoring subagent).
+- **Codex** → [`plugins/codex/`](plugins/codex/) — an `AGENTS.md` + custom
+  prompts you drop into `~/.codex/`.
+
+Each plugin teaches your agent the whole loop below: scaffold → author against the
+locked-tree contract and blocks API → pass the gates → embed the tutor → deploy.
+See each plugin's README for one-command install.
+
+Prefer the raw CLI? It's four verbs — keep reading.
+
+---
+
+## The loop
+
+In a clean agent session (or by hand):
 
 ```bash
-node bin/primer.mjs new my-lesson     # scaffold + pnpm install
+npx @faraday-kit/cli new my-lesson         # scaffold a 2D lesson + pnpm install
+#   add --tutor        durable grounded AI tutor (adds a tiny server layer)
+#   add --3d           Three.js / React Three Fiber block + demo
+#   add --physics      Rapier physics (implies --3d)
 cd my-lesson
-# author src/lesson/lesson.tsx using @/primer/blocks + @/primer/runtime
-pnpm check                            # structure + integrity gates
-pnpm dev                              # verify it renders and interactions work
+
+# author src/lesson/lesson.tsx using @/faraday/blocks + @/faraday/runtime
+# (this is where your agent — or you — does the creative work)
+
+pnpm check                                 # structure + SHA-256 integrity gates
+pnpm dev                                   # Vite serves on a free port; drive it
+pnpm build                                 # static bundle in dist/ (deployable)
 ```
 
-## Layout
+> During local development of this repo, `npx @faraday-kit/cli` is equivalent to
+> `node bin/faraday.mjs` run from the repo root.
+
+---
+
+## Two zones (the core contract)
+
+Every scaffolded lesson has exactly two zones. This split is the whole idea.
+
+| Zone | Path | Rule |
+|---|---|---|
+| **Author area** | `src/lesson/**` | Your lesson. `src/lesson/lesson.tsx` is the fixed entry and must `export default` a React component. Add sibling files freely. |
+| **Protected area** | `src/faraday/**` | Vendored shadcn UI, lesson blocks, runtime, styles, world/tutor runtimes. **Do not edit.** Sealed by a SHA-256 manifest — `faraday check` (`pnpm check`) fails on drift. |
+
+`src/main.tsx`, `index.html`, and config are the app shell; you rarely touch them.
+Templates already import via the `@/faraday/*` alias, so there is **no import
+rewriting** at scaffold time.
+
+The scaffolded project ships its own authoring guide in `AGENTS.md` and
+`docs/authoring.md` — your agent reads those to learn the blocks API.
+
+---
+
+## What you can build (the layer stack)
+
+Faraday closes the feature set **horizontally** at Stage 1 — every layer works
+today under BYOK / self-deploy. Later stages remove friction (managed AI,
+multi-tenancy, payments), they don't add features. (See [VISION.md](VISION.md) §2.)
+
+- **Lesson** — one interactive idea. ~15 shadcn-based blocks: `<Lesson>`,
+  `<Prose>`, `<Stage>`, `<Workbench>` (live canvas + floating control panel),
+  `<ControlGroup>`, `<Chart>`, `<ParamSlider>`, `<ParamSwitch>`, `<Segmented>`,
+  `<Scrubber>` + `useStepper`, `<Quiz>`, `<Callout>`, `<Reveal>`, `<Compare>`,
+  `<Stat>`. Themed via externalized CSS style/design/theme token layers.
+- **3D** (`--3d`) — `<Scene3D>` (R3F) with procedural helpers (`<Body>`,
+  `<Planet>`, `<OrbitPath>`, `<Label3D>`) and a `<Model>` glTF loader.
+  **Procedural-first, asset-fallback.** Domain scenes must carry a `mood`
+  (`space`, `cell`, `lab`, `physics`, `abstract`).
+- **Physics** (`--physics`) — Rapier gravity/collision via `@react-three/rapier`.
+- **Curriculum / world** — `<Course>` for a linear textbook (chapter nav,
+  prev/next, `#hash`), or `<CurriculumHost>` for a graph of lessons with **unlock
+  progression** and a swappable **pack** (`linearPack`, `map2dPack`,
+  `world3dPack`) — a status list, a 2D node map, or a 3D open-world constellation.
+- **LMS** — vendored progress recorder + dashboard components that attach to a
+  lesson or a whole curriculum.
+- **Tutor AI** (`--tutor`) — a **durable, grounded** chat agent embedded beside
+  your content. More below.
+
+---
+
+## The AI tutor (`--tutor`)
+
+`faraday new <name> --tutor` turns the app into a Vite + Nitro + Workflow hybrid
+and vendors a `<Tutor>` component. It follows Vercel's AI SDK design and runs a
+Workflow DevKit **durable agent**: a reply survives a page refresh, a network
+drop, or a serverless timeout and resumes mid-answer.
+
+```tsx
+import { Tutor } from "@/faraday/tutor";
+
+<Tutor
+  title="Binary-search tutor"
+  context={LESSON_TEXT}   // the tutor answers only from this — grounding, no quiz-answer leaks
+  greeting="Hi! Ask me anything about binary search."
+/>
+```
+
+- **Grounded**: the tutor is scaffolded to answer from the `context` you pass and
+  steer back when a question falls outside it.
+- **Socratic**: it hints and asks instead of dumping answers — never leaks quiz
+  or exercise solutions outright.
+- **Thinking + caching**: the default model streams reasoning into a collapsible
+  "Thinking" block; a deterministic prompt prefix lets the provider implicit-cache
+  the growing conversation. (Persona, rules, and model live in
+  `workflows/tutor-agent.ts` — that file is yours to edit.)
+
+**Setup**: `cp env.example .env.local` and paste an `AI_GATEWAY_API_KEY` (Vercel
+dashboard → AI Gateway → API keys). `.env.local` is git-ignored — never commit a
+real key. On Vercel, deploys authenticate to the Gateway via OIDC; no key needed.
+Static (non-tutor) lessons stay server-free. Full guide: the scaffolded
+`docs/tutor.md`.
+
+---
+
+## CLI reference
 
 ```
-agent-edu/
-├─ bin/primer.mjs         # entry
-├─ src/                   # CLI: cli, generate, copy, manifest, pkg (+ tests)
-└─ templates/
-   ├─ starter/            # app shell -> project root (incl. demo lesson in src/lesson/)
-   ├─ runtime/            # -> src/primer/runtime  (LessonHost, useStepper, styles)
-   └─ blocks/             # -> src/primer/blocks   (Lesson, Prose, Stage, Slider, Scrubber, Check)
+faraday new <name> [--3d | --physics] [--tutor] [--at <dir>] [--overwrite] [--skip-install] [--json]
+faraday check [--dir <lesson>]     verify the protected src/faraday/** tree
+faraday help
+```
+
+| Flag | Effect |
+|---|---|
+| `--3d` | include the Three.js (R3F) 3D block + a solar-system demo. Omit for 2D — `three` is never installed or bundled without it. |
+| `--physics` | `--3d` plus the Rapier physics engine + a gravity/collision demo. |
+| `--tutor` | add the durable grounded AI tutor (`api/` + `workflows/` server layer; needs `AI_GATEWAY_API_KEY` locally). |
+| `--at <dir>` | scaffold into `<dir>` instead of `./<name>`. |
+| `--overwrite` | allow writing into a non-empty target. |
+| `--skip-install` | skip `pnpm install` (or set `FARADAY_SKIP_INSTALL=1`). |
+| `--json` | machine-readable result (title, package name, dir, next steps) — for agents. |
+
+Exit codes: `0` ok · `1` lesson check failed · `2` usage error · `4` environment
+error. `--json` makes `new` emit a structured result an agent can parse.
+
+---
+
+## Repo layout
+
+```
+faraday-edu/
+├─ bin/faraday.mjs          # CLI entry (thin; logic in src/)
+├─ src/                     # cli, generate, copy, manifest, pkg (+ node --test)
+├─ templates/
+│  ├─ starter/              # app shell → project root (+ demo lesson, AGENTS.md, docs)
+│  ├─ faraday/              # → src/faraday/  (locked: ui, blocks, runtime, styles, world, lms)
+│  ├─ addon-3d/             # → three/ block + examples (with --3d/--physics)
+│  └─ addon-tutor/          # → api/ + workflows/ + src/faraday/tutor (with --tutor)
+├─ plugins/
+│  ├─ claude-code/          # Claude Code plugin + marketplace (install & drive Faraday)
+│  └─ codex/                # Codex AGENTS.md + custom prompts
+├─ specs/                   # tutor-ai.md, world-seed.md (design)
+├─ VISION.md · GTM.md       # architecture & customer strategy
+└─ README.md
 ```
 
 ## What the scaffolder does
 
-Copy starter → target · restore `.gitignore` · vendor runtime+blocks into
-`src/primer/` · inject package name + HTML title · issue a `lessonId`
-(`.primer/provenance.json`) · write the integrity manifest · `pnpm install`.
+Copy starter → target · restore `.gitignore` · vendor the locked runtime into
+`src/faraday/` · overlay `--3d`/`--tutor` addons · inject package name + HTML title
+· issue a `lessonId` provenance record · write the SHA-256 integrity manifest ·
+`pnpm install`.
 
-Because templates already import via the `@/primer/*` alias, there is **no import
-rewriting** at scaffold time — unlike toolcraft's `@repo/*` → `@/toolcraft/*` pass.
-
-## Commands
-
-- `primer new <name> [--at <dir>] [--overwrite] [--skip-install] [--json]`
-- `primer check [--dir <lesson>]` — verify a lesson's protected tree
-- `primer help`
-
-Exit codes: `0` ok · `1` check failed · `2` usage · `4` environment.
-
-## Tests
+## Develop Faraday itself
 
 ```bash
-node --test src/*.test.mjs
+node --test src/*.test.mjs     # CLI unit tests
+node bin/faraday.mjs help      # run the CLI from the repo
 ```
+
+---
+
+## Where this is headed
+
+Faraday is the **build-time** half of a two-AI system: a *creation AI* authors
+courseware now (what the plugins drive); a *tutor AI* teaches students at runtime
+(what `--tutor` embeds). The platform phase adds managed AI (Vercel AI Gateway),
+multi-tenancy (Vercel Platforms), and creator↔student payments — turning the
+open-core CLI into a three-sided marketplace. Read [VISION.md](VISION.md) and
+[GTM.md](GTM.md) for the full arc.
