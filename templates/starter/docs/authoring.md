@@ -175,6 +175,31 @@ export default function MyCourse() {
 
 Keep chapter components in `src/lesson/chapters/`. See `docs/examples/course.tsx`.
 
+### Curricula & worlds (unlock progression, swappable packs)
+
+For a graph of lessons with **unlock progression** (not just linear chapters), use
+`<CurriculumHost>` from `@/faraday/world`. You declare a `Curriculum` (nodes with
+`requires` + per-node `lesson`); the host owns progress, the world↔lesson toggle,
+the HUD, and an event stream for LMS/tutor hooks. The *shape* of the world is a
+swappable **pack** (ports-and-adapters) — change one prop, keep the content:
+
+- `linearPack` — a status list (baseline, no deps). `@/faraday/world`
+- `map2dPack` — a 2D SVG node map (game-like). `@/faraday/world`
+- `world3dPack` — a 3D open-world constellation (needs `--3d`). `@/faraday/three`
+
+```tsx
+import { CurriculumHost, map2dPack, type Curriculum } from "@/faraday/world";
+const curriculum: Curriculum = { title: "…", nodes: [
+  { id: "a", title: "A", meta: { x: 15, y: 50 }, lesson: <LessonA /> },
+  { id: "b", title: "B", requires: ["a"], meta: { x: 55, y: 50 }, lesson: <LessonB /> },
+]};
+export default () => <CurriculumHost curriculum={curriculum} pack={map2dPack} />;
+```
+
+`meta.{x,y}` (0..100) place nodes on the map/world; omit them for an auto layout.
+A lesson can self-complete via `useNode().complete()` (e.g. after a Quiz), or the
+learner presses Finish. See `docs/examples/curriculum.tsx` (+ `curriculum3d.tsx` with `--3d`).
+
 ## Checking your work
 
 - `pnpm check` — structure + integrity gates.

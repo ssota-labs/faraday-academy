@@ -5,3 +5,4 @@ export { Scene3D } from "./scene";
 export { Body, OrbitPath, Planet, Label3D } from "./helpers";
 export { Model } from "./model";
 export { MOOD_NAMES, type Mood } from "./moods";
+export { world3dPack, createWorld3dPack } from "./world3d";
