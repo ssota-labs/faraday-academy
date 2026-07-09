@@ -4,7 +4,9 @@
 
 Bundle several lessons into a navigable textbook (chapter nav, prev/next, `#hash`
 deep links). Make it your default export; keep chapter components in
-`src/lesson/chapters/`.
+`src/lesson/chapters/`. Each chapter **remounts when you switch to it** (keyed by
+slug), so per-chapter `useState` / `useStepper` resets cleanly — no stale state
+leaks across chapters. You can freely mix stepped and continuous chapters.
 
 ```tsx
 import { Course } from "@/faraday/runtime";
@@ -51,11 +53,25 @@ Import from `@/faraday/three`. `three` is only installed/bundled with `--3d`.
 - `<Scene3D mood height? camera? controls? autoRotate?>` — preconfigured R3F
   canvas (perspective camera, OrbitControls). Drop into a `<Workbench>` center;
   bind panel controls to scene state via React.
-- Procedural helpers: `<Body radius color emissive?>`, `<OrbitPath a e?>`,
-  `<Planet a e? size? speed?>`, `<Label3D position>`. Compose for astronomy,
-  physics, chemistry (atoms/molecules), math surfaces, a stylized cell — **all
-  code-generated, no assets.** For custom geometry, drop R3F intrinsics
-  (`<mesh>`/`<sphereGeometry>`) directly inside `<Scene3D>`.
+- Procedural helpers (compose for astronomy, physics, chemistry, math surfaces, a
+  stylized cell — **all code-generated, no assets**):
+  - `<Body position? radius? color? emissive? emissiveIntensity?>` — a stationary
+    sphere (star, nucleus, moon).
+  - `<OrbitPath a e? color? opacity?>` — the elliptical orbit line. The ellipse is
+    offset so its **focus sits at the origin** — put a `<Body>` at `[0,0,0]` and it
+    lands at the focus (exactly what a Kepler/orbit scene wants).
+  - `<Planet a e? size? speed? color? phase?>` — a sphere orbiting the origin.
+    ⚠️ It moves at **constant parametric speed** (decorative), so it does *not*
+    sweep equal areas or speed up at perihelion — fine for a generic orbit, **wrong
+    for Kepler's second law**. For true orbital dynamics, integrate motion yourself
+    in a `useFrame` (uniform mean anomaly → Newton-solve `M = E − e·sin E`).
+  - `<Label3D position>{…}</Label3D>` — an HTML label. Being a drei `<Html>`
+    overlay it **does** use theme text color — the one exception to "3D = hex only".
+
+  For custom geometry, drop R3F intrinsics (`<mesh>`/`<sphereGeometry>`) directly
+  inside `<Scene3D>`. Bind panel controls by holding state in the **lesson**
+  component (not inside the Canvas) and passing it as props to components rendered
+  under `<Scene3D>`; a `useFrame` reads the latest prop each frame.
 
 ### MANDATORY: domain scenes must carry a `mood`
 

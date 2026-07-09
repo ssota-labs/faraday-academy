@@ -108,14 +108,20 @@ block + a solar-system demo. **Without `--3d`, three is never installed or bundl
   `"space"` (dark + starfield), `"cell"` (ethereal teal haze + motes), `"lab"`
   (bright + grid), `"physics"` (dim + grid), `"abstract"` (minimal dark), `"neutral"`
   (transparent, UI demos only). See the MANDATORY rule in AGENTS.md.
-- `<Body radius color emissive?>`, `<OrbitPath a e?>`, `<Planet a e? size? speed?>`,
+- `<Body position? radius? color? emissive? emissiveIntensity?>`,
+  `<OrbitPath a e? color? opacity?>`, `<Planet a e? size? speed? color? phase?>`,
   `<Label3D position>` — procedural helpers. Compose these for astronomy, physics,
   chemistry (atoms/molecules), math surfaces, or a stylized cell — **all
-  code-generated, no assets.** For custom geometry, drop `<mesh>`/`<sphereGeometry>`
-  etc. (R3F intrinsics) directly inside `<Scene3D>`.
+  code-generated, no assets.** The orbit ellipse puts its **focus at the origin**,
+  so a `<Body>` at `[0,0,0]` sits at the focus. For custom geometry, drop
+  `<mesh>`/`<sphereGeometry>` etc. (R3F intrinsics) directly inside `<Scene3D>`.
+  - ⚠️ `<Planet>` moves at **constant parametric speed** — decorative, not
+    physically accurate. It does not sweep equal areas, so it's **wrong for Kepler's
+    second law**; integrate motion in your own `useFrame` for true orbital dynamics.
 
-Note: three uses fixed colors, not theme CSS vars (three can't parse `oklch`).
-Pass hex colors to 3D objects.
+Note: three uses fixed hex colors, not theme CSS vars (three can't parse `oklch`) —
+pass hex to 3D objects. Exception: `<Label3D>` is a drei `<Html>` overlay, so it
+uses theme text color like the rest of your DOM.
 
 Note: a `<Scene3D>` (or `<Chart>`) only paints once its container has a non-zero
 width — both defer rendering via a ResizeObserver so they never mount at 0px. On a

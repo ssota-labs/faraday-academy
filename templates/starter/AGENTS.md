@@ -51,7 +51,8 @@ Import from `@/faraday/blocks`; raw shadcn primitives are in `@/faraday/ui/*`.
   `useNode().complete()` in a curriculum to unlock the next node.
 - `<Callout title? variant?>` — highlighted note. `variant`: `"default"` | `"destructive"`.
 - `<Reveal label?>` — collapsible hint/spoiler.
-- `<Compare items>` — tabbed panels for side-by-side cases.
+- `<Compare items defaultValue?>` — tabbed side-by-side cases. `items: {value,
+  label, content}[]` — `value` keys each tab (required); `defaultValue` opens one.
 - `<Stat label value delta?>` — compact metric read-out.
 - `useStepper(total, { fps? })` — cursor + autoplay over an ordered list of frames.
 - `<Course title chapters>` (from `@/faraday/runtime`) — bundle several lessons into a

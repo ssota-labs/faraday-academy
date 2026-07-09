@@ -81,7 +81,7 @@ of `<Workbench>`.
 | `<Quiz question options onCorrect? onChecked?>` | Self-check MCQ. `options: {label, correct?, hint?}[]`. `onCorrect()` fires on a passed answer — wire to `useNode().complete()` for curriculum unlock; `onChecked(correct)` fires on every check. |
 | `<Callout title? variant?>` | Highlighted note. `variant`: `"default"` \| `"destructive"`. |
 | `<Reveal label?>` | Collapsible hint/spoiler. |
-| `<Compare items>` | Tabbed panels for side-by-side cases. |
+| `<Compare items defaultValue?>` | Tabbed side-by-side cases. `items: {value, label, content}[]` — `value` keys each tab (**required**); `defaultValue` picks the open tab (defaults to the first item's `value`). |
 | `<Stat label value delta?>` | Compact metric read-out. |
 | `useStepper(total, { fps? })` | Cursor + autoplay over ordered frames. From `@/faraday/runtime`. |
 
