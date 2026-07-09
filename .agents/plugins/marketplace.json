@@ -1,0 +1,14 @@
+{
+  "name": "faraday",
+  "interface": {
+    "displayName": "Faraday",
+    "shortDescription": "Scaffold interactive textbooks + grounded AI tutors from a Codex session."
+  },
+  "plugins": [
+    {
+      "name": "faraday",
+      "source": { "source": "local", "path": "./plugins/codex" },
+      "category": "Development"
+    }
+  ]
+}
