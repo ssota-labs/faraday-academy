@@ -2,21 +2,28 @@
 // map with unlock progression. Copy into src/lesson/lesson.tsx to try it.
 // Swap `pack={map2dPack}` for `pack={linearPack}` to change the whole world's
 // shape without touching the content — that's the ports-and-adapters seam.
-import { CurriculumHost, map2dPack, type Curriculum } from "@/faraday/world";
+import { CurriculumHost, map2dPack, useNode, type Curriculum } from "@/faraday/world";
 import { Lesson, Prose, Quiz } from "@/faraday/blocks";
 
+// A lesson rendered inside <CurriculumHost> can self-complete: pull `complete`
+// from useNode() and fire it when the reader passes the quiz — that marks this
+// node done and unlocks whatever `requires` it. (The Finish button in the frame
+// stays as a manual fallback; `complete()` is idempotent.)
 function Stop({ title, body }: { title: string; body: string }) {
+  const { complete } = useNode();
   return (
     <Lesson topic="Map course" title={title} lead={body}>
       <Prose>
         <p>{body}</p>
-        <p>Press <strong>Finish</strong> (top-right) when you're done to complete this stop and unlock what's next.</p>
+        <p>Answer the check correctly to complete this stop and unlock what's next
+          — or press <strong>Finish</strong> (top-right) any time.</p>
       </Prose>
       <Quiz
         question="Quick check — ready to move on?"
+        onCorrect={complete}
         options={[
-          { label: "Yes, got it", correct: true, hint: "Great — hit Finish." },
-          { label: "Not yet", hint: "Re-read above, then Finish when ready." },
+          { label: "Yes, got it", correct: true, hint: "Great — this stop is complete." },
+          { label: "Not yet", hint: "Re-read above, then try again." },
         ]}
       />
     </Lesson>
@@ -36,7 +43,7 @@ const curriculum: Curriculum = {
     { id: "mid", title: "Crossroads", requires: ["a", "b"], meta: { x: 64, y: 50 }, reward: { xp: 20 },
       lesson: <Stop title="Crossroads" body="Unlocked only after both paths — this is a join node." /> },
     { id: "final", title: "Summit", requires: ["mid"], meta: { x: 88, y: 50 }, reward: { xp: 30 },
-      lesson: <Stop title="Summit" body="The finale. Finish this to complete the whole course." /> },
+      lesson: <Stop title="Summit" body="The finale. Pass this to complete the whole course." /> },
   ],
 };
 

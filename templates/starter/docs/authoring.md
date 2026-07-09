@@ -24,7 +24,7 @@ export default function MyLesson() {
       <Workbench
         title="Canvas"
         panelTitle="Controls"
-        onReset={() => setParam(4)}
+        onReset={() => { setParam(4); step.reset(); }}  // reset all state, incl. the stepper
         controls={
           <>
             <ControlGroup label="Playback">
@@ -67,7 +67,7 @@ Precompute an ordered array of immutable frames and walk it with `useStepper` +
 **Continuous** — the reader turns knobs and the picture responds live (a function
 plot, a physics parameter). No `useStepper` needed: hold params in `useState`,
 `useMemo` the visualization, drive with `<ParamSlider>` / `<ParamSwitch>` /
-`<Segmented>`.
+`<Segmented>`. See `docs/examples/continuous.tsx` (compound interest + a live chart).
 
 ## Visualizations & theme colors
 
@@ -108,14 +108,22 @@ block + a solar-system demo. **Without `--3d`, three is never installed or bundl
   `"space"` (dark + starfield), `"cell"` (ethereal teal haze + motes), `"lab"`
   (bright + grid), `"physics"` (dim + grid), `"abstract"` (minimal dark), `"neutral"`
   (transparent, UI demos only). See the MANDATORY rule in AGENTS.md.
-- `<Body radius color emissive?>`, `<OrbitPath a e?>`, `<Planet a e? size? speed?>`,
+- `<Body position? radius? color? emissive? emissiveIntensity?>`,
+  `<OrbitPath a e? color? opacity?>`, `<Planet a e? size? speed? color? phase?>`,
   `<Label3D position>` — procedural helpers. Compose these for astronomy, physics,
   chemistry (atoms/molecules), math surfaces, or a stylized cell — **all
-  code-generated, no assets.** For custom geometry, drop `<mesh>`/`<sphereGeometry>`
-  etc. (R3F intrinsics) directly inside `<Scene3D>`.
+  code-generated, no assets.** The orbit ellipse puts its **focus at the origin**,
+  so a `<Body>` at `[0,0,0]` sits at the focus. For custom geometry, drop
+  `<mesh>`/`<sphereGeometry>` etc. (R3F intrinsics) directly inside `<Scene3D>`.
+  - ⚠️ These helpers are **decorations, not simulators** — e.g. `<Planet>` moves at
+    a constant rate, not by any physical law. When a lesson's teaching point is the
+    quantitative behaviour itself (real dynamics, rates, a specific distribution),
+    don't rely on a helper's built-in motion: model the relationship yourself
+    (`useFrame`/`useMemo`) and verify it against the concept.
 
-Note: three uses fixed colors, not theme CSS vars (three can't parse `oklch`).
-Pass hex colors to 3D objects.
+Note: three uses fixed hex colors, not theme CSS vars (three can't parse `oklch`) —
+pass hex to 3D objects. Exception: `<Label3D>` is a drei `<Html>` overlay, so it
+uses theme text color like the rest of your DOM.
 
 Note: a `<Scene3D>` (or `<Chart>`) only paints once its container has a non-zero
 width — both defer rendering via a ResizeObserver so they never mount at 0px. On a
@@ -196,9 +204,12 @@ const curriculum: Curriculum = { title: "…", nodes: [
 export default () => <CurriculumHost curriculum={curriculum} pack={map2dPack} />;
 ```
 
-`meta.{x,y}` (0..100) place nodes on the map/world; omit them for an auto layout.
-A lesson can self-complete via `useNode().complete()` (e.g. after a Quiz), or the
-learner presses Finish. See `docs/examples/curriculum.tsx` (+ `curriculum3d.tsx` with `--3d`).
+`meta.{x,y}` (0..100) place nodes on the map/world (percentages of the pack's
+canvas — `map2dPack` is a fixed 720×440 SVG, so `y:50` centres and extreme `x`
+can clip labels); omit them for an auto layout. A lesson self-completes via
+`useNode().complete()` — the idiomatic wiring is `<Quiz onCorrect={complete} />`
+(answer correctly → node done → dependents unlock); the learner can also press
+Finish. See `docs/examples/curriculum.tsx` (+ `curriculum3d.tsx` with `--3d`).
 
 ## Checking your work
 

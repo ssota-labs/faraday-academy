@@ -1,5 +1,7 @@
 // <Quiz> — a self-check multiple-choice question. Reveals correctness + hint
-// after the learner picks an option and presses Check.
+// after the learner picks an option and presses Check. Optional callbacks let a
+// lesson react to a pass — e.g. inside a <CurriculumHost>, wire `onCorrect` to
+// `useNode().complete()` so answering correctly unlocks the next node.
 import { useState } from "react";
 import { RadioGroup, RadioGroupItem } from "@/faraday/ui/radio-group";
 import { Button } from "@/faraday/ui/button";
@@ -11,7 +13,15 @@ export interface QuizOption {
   hint?: string;
 }
 
-export function Quiz(props: { question: string; options: QuizOption[] }) {
+export function Quiz(props: {
+  question: string;
+  options: QuizOption[];
+  /** Fires when the learner checks a CORRECT answer. Wire to `useNode().complete()`
+   *  in a curriculum to unlock the next node, or trigger any "passed" side effect. */
+  onCorrect?: () => void;
+  /** Fires on every Check with the result — for analytics or custom UI. */
+  onChecked?: (correct: boolean) => void;
+}) {
   const [selected, setSelected] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
   const chosen = selected !== null ? props.options[Number(selected)] : null;
@@ -19,6 +29,14 @@ export function Quiz(props: { question: string; options: QuizOption[] }) {
   const pick = (i: number) => {
     setSelected(String(i));
     setChecked(false);
+  };
+
+  const check = () => {
+    setChecked(true);
+    if (!chosen) return;
+    const correct = Boolean(chosen.correct);
+    props.onChecked?.(correct);
+    if (correct) props.onCorrect?.();
   };
 
   return (
@@ -39,7 +57,7 @@ export function Quiz(props: { question: string; options: QuizOption[] }) {
         </div>
       </RadioGroup>
       <div>
-        <Button size="sm" disabled={selected === null} onClick={() => setChecked(true)}>
+        <Button size="sm" disabled={selected === null} onClick={check}>
           Check answer
         </Button>
       </div>
