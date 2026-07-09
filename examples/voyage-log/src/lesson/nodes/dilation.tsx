@@ -33,15 +33,13 @@ export default function DilationLesson() {
     setYears(10);
   };
 
-  // "You are here" as a second series that peaks at the current r/r_s. Chart's
-  // data type is Record<string, string|number>, so we can't use null gaps —
-  // instead we render the marker series as a flat 0 everywhere except at the
-  // current bucket, where it takes the current ratio (spike).
+  // "You are here" as a second series — null gaps (Recharts) so we don't draw a
+  // 0→y spike; only the current bucket gets a point.
   const markedData = useMemo(
     () =>
       chartData.map((d) => ({
         ...d,
-        marker: Math.abs(d.r - Number(rOverRs.toFixed(2))) < 0.03 ? ratio : 0,
+        marker: Math.abs(d.r - Number(rOverRs.toFixed(2))) < 0.03 ? ratio : null,
       })),
     [chartData, rOverRs, ratio],
   );

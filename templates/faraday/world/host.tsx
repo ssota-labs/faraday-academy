@@ -3,7 +3,7 @@
 // the standard HUD, completion wiring, and the event stream that LMS + Tutor AI
 // subscribe to. It hands a read-only WorldView to the chosen pack and consumes
 // the pack's navigation intents. Packs never touch progression or state.
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowCounterClockwiseIcon, CaretLeftIcon, CheckIcon } from "@phosphor-icons/react";
 import { Button } from "@/faraday/ui/button";
 import { Badge } from "@/faraday/ui/badge";
@@ -25,6 +25,24 @@ export function CurriculumHost(props: {
     storageKey,
   );
   const [entered, setEntered] = useState<string | null>(null);
+
+  // Progress is keyed on curriculum identity. Recreating the object every render
+  // (e.g. defining `const curriculum = {…}` inside the component) wipes progress.
+  // Keep it at module scope — see docs/authoring.md. Warn once in dev if the
+  // identity flips while the title stays the same (the classic footgun).
+  const curriculumRef = useRef(curriculum);
+  useEffect(() => {
+    if (curriculumRef.current !== curriculum) {
+      const sameTitle = curriculumRef.current.title === curriculum.title;
+      curriculumRef.current = curriculum;
+      if (import.meta.env?.DEV && sameTitle) {
+        console.warn(
+          "[CurriculumHost] curriculum object identity changed but title is the same. " +
+            "Keep the curriculum at module scope so progress isn't reset on every render.",
+        );
+      }
+    }
+  }, [curriculum]);
 
   const world = useMemo(() => buildWorldView(curriculum, progress), [curriculum, progress]);
   const emit = props.onEvent ?? (() => {});

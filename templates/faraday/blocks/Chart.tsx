@@ -33,7 +33,9 @@ export interface ChartSeries {
 
 export function Chart(props: {
   type?: "line" | "bar" | "area";
-  data: Record<string, string | number>[];
+  /** Row values. `null` is allowed (Recharts treats it as a gap — useful for a
+   *  single "you are here" marker without a 0→y spike). */
+  data: Record<string, string | number | null>[];
   x: string;
   series: ChartSeries[];
   height?: number;

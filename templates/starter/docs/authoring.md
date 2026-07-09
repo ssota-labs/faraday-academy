@@ -121,9 +121,12 @@ block + a solar-system demo. **Without `--3d`, three is never installed or bundl
     don't rely on a helper's built-in motion: model the relationship yourself
     (`useFrame`/`useMemo`) and verify it against the concept.
 
-Note: three uses fixed hex colors, not theme CSS vars (three can't parse `oklch`) —
-pass hex to 3D objects. Exception: `<Label3D>` is a drei `<Html>` overlay, so it
-uses theme text color like the rest of your DOM.
+**Colour split:** DOM/SVG/Tailwind → semantic tokens (never raw `#hex`). three.js
+material colours → **hex required** (three can't parse `oklch`). Exception:
+`<Label3D>` is a drei `<Html>` overlay and uses theme text like the rest of the DOM.
+
+`<Scene3D>` defaults to `mood="neutral"` and logs a **dev warning** — domain scenes
+must set `space`/`cell`/`lab`/`physics`/`abstract`.
 
 Note: a `<Scene3D>` (or `<Chart>`) only paints once its container has a non-zero
 width — both defer rendering via a ResizeObserver so they never mount at 0px. On a
@@ -203,6 +206,10 @@ const curriculum: Curriculum = { title: "…", nodes: [
 ]};
 export default () => <CurriculumHost curriculum={curriculum} pack={map2dPack} />;
 ```
+
+Keep `curriculum` at **module scope** (stable identity). Defining it inside the
+component recreates the object every render and wipes progress — `CurriculumHost`
+warns in dev when that happens.
 
 `meta.{x,y}` (0..100) place nodes on the map/world (percentages of the pack's
 canvas — `map2dPack` is a fixed 720×440 SVG, so `y:50` centres and extreme `x`

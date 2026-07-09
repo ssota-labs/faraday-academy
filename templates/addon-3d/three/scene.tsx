@@ -23,6 +23,17 @@ export function Scene3D(props: {
 }) {
   const { mood = "neutral", height = 420, camera = [0, 6, 11], fov = 45, controls = true } = props;
 
+  // Domain scenes that forget `mood` silently render as a flat transparent
+  // canvas — catch that in dev so authors don't chase a "why is space white?" bug.
+  useEffect(() => {
+    if (import.meta.env?.DEV && mood === "neutral") {
+      console.warn(
+        '[Scene3D] mood="neutral" (default). For a real subject set mood to ' +
+          '"space" | "cell" | "lab" | "physics" | "abstract". Neutral is for UI demos only.',
+      );
+    }
+  }, [mood]);
+
   // Defer the WebGL canvas until the container has a real width — R3F (like
   // Recharts) renders blank if it mounts at 0px (collapsed group, hidden tab).
   const ref = useRef<HTMLDivElement>(null);
