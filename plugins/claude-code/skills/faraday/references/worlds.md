@@ -37,9 +37,12 @@ const curriculum: Curriculum = { title: "…", nodes: [
 export default () => <CurriculumHost curriculum={curriculum} pack={map2dPack} />;
 ```
 
-`meta.{x,y}` (0..100) place nodes on the map/world; omit for auto layout. A lesson
-self-completes via `useNode().complete()` (e.g. after a `<Quiz>`), or the learner
-presses Finish. See `docs/examples/curriculum.tsx` (+ `curriculum3d.tsx` with `--3d`).
+`meta.{x,y}` (0..100) place nodes on the map/world — percentages of the pack's
+canvas (`map2dPack` is a fixed 720×440 SVG, so `y:50` centres and extreme `x` can
+clip labels); omit for auto layout. A lesson self-completes via
+`useNode().complete()`; the idiomatic wiring is **`<Quiz onCorrect={complete} />`**
+(answer correctly → node done → dependents unlock). The learner can also press
+Finish. See `docs/examples/curriculum.tsx` (+ `curriculum3d.tsx` with `--3d`).
 
 ## 3D lessons (`--3d`) — Three.js / R3F
 
@@ -107,9 +110,20 @@ motion (orbits, pendulums-as-math), integrate in the render loop — it's lighte
 ## LMS — progress tracking
 
 The vendored `@/faraday/lms` exposes a progress recorder + dashboard components
-that attach to a lesson or a whole curriculum (the `CurriculumHost` event stream
-feeds them). Use for roster/progress read-outs. Like everything under
-`src/faraday/`, it's locked — compose it, don't edit it.
+that attach to a lesson or a whole curriculum. Wire it to the `CurriculumHost`
+event stream:
+
+```tsx
+import { CurriculumHost } from "@/faraday/world";
+import { useLmsRecorder, ProgressDashboard } from "@/faraday/lms";
+const rec = useLmsRecorder("my-course");           // → { onEvent, events, clear }
+<CurriculumHost curriculum={c} pack={map2dPack} onEvent={rec.onEvent} />
+<ProgressDashboard events={rec.events} />          // summarizes internally
+```
+
+For a cohort read-out pass `learners={[{ id, name, summary: summarize(rec.events) }]}`
+(`summarize` builds the `LmsSummary`, incl. `perNode`). Use for roster/progress.
+Like everything under `src/faraday/`, it's locked — compose it, don't edit it.
 
 ## Rendering gotcha (3D & charts)
 

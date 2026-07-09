@@ -78,7 +78,7 @@ of `<Workbench>`.
 | `<ParamSwitch label checked onChange>` | On/off control. |
 | `<Segmented label? value onChange options>` | Single-select segmented control. |
 | `<Scrubber index total playing atStart atEnd onPrev onNext onTogglePlay onSeek>` | Transport controls; wire to `useStepper`. |
-| `<Quiz question options>` | Self-check MCQ. `options: {label, correct?, hint?}[]`. |
+| `<Quiz question options onCorrect? onChecked?>` | Self-check MCQ. `options: {label, correct?, hint?}[]`. `onCorrect()` fires on a passed answer — wire to `useNode().complete()` for curriculum unlock; `onChecked(correct)` fires on every check. |
 | `<Callout title? variant?>` | Highlighted note. `variant`: `"default"` \| `"destructive"`. |
 | `<Reveal label?>` | Collapsible hint/spoiler. |
 | `<Compare items>` | Tabbed panels for side-by-side cases. |

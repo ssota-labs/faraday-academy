@@ -46,7 +46,9 @@ Import from `@/faraday/blocks`; raw shadcn primitives are in `@/faraday/ui/*`.
 - `<ParamSwitch label checked onChange>` — on/off control.
 - `<Segmented label? value onChange options>` — single-select segmented control.
 - `<Scrubber ...>` — transport controls for a stepped visualization (wire to `useStepper`).
-- `<Quiz question options>` — self-check MCQ (`options: {label, correct?, hint?}[]`).
+- `<Quiz question options onCorrect? onChecked?>` — self-check MCQ (`options: {label,
+  correct?, hint?}[]`). `onCorrect` fires on a passed answer — wire it to
+  `useNode().complete()` in a curriculum to unlock the next node.
 - `<Callout title? variant?>` — highlighted note. `variant`: `"default"` | `"destructive"`.
 - `<Reveal label?>` — collapsible hint/spoiler.
 - `<Compare items>` — tabbed panels for side-by-side cases.
