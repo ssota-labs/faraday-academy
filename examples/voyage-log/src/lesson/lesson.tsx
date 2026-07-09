@@ -1,94 +1,86 @@
-// 3D demo lesson (scaffolded with `faraday new --3d`): a code-generated solar
-// system. Every object here is procedural Three.js geometry — no assets. This is
-// the AUTHOR AREA; rewrite it. The 3D block under src/faraday/three is locked.
-import { useMemo, useState } from "react";
-import { Lesson, Prose, Workbench, ControlGroup, ParamSlider, ParamSwitch, Callout, Quiz } from "@/faraday/blocks";
-import { Scene3D, Body, OrbitPath, Planet, Label3D } from "@/faraday/three";
+// Voyage Log — C-B curriculum demo. A 3D star-map of six labs that walk the
+// learner from Kepler orbits through gravitational time dilation and clock
+// synchronization. World shape comes from world3dPack (mood="space"); content
+// comes from the six lesson files in ./nodes.
+//
+// The curriculum object is intentionally at module scope: <CurriculumHost>
+// keys progress on stable identity, so recreating this object per render
+// would wipe progress. See docs/authoring.md "Curricula & worlds".
+import { CurriculumHost, type Curriculum } from "@/faraday/world";
+import { world3dPack } from "@/faraday/three";
 
-const PALETTE = ["#8b9cf6", "#5eead4", "#fbbf24", "#fb7185", "#a78bfa"];
+import KeplerLesson from "./nodes/kepler";
+import SlingshotLesson from "./nodes/slingshot";
+import ElevatorLesson from "./nodes/elevator";
+import DilationLesson from "./nodes/dilation";
+import LensLesson from "./nodes/lens";
+import SyncLesson from "./nodes/sync";
 
-export default function OrbitsLesson() {
-  const [speed, setSpeed] = useState(0.5);
-  const [ecc, setEcc] = useState(0.2);
-  const [count, setCount] = useState(3);
-  const [showOrbits, setShowOrbits] = useState(true);
+const curriculum: Curriculum = {
+  title: "Voyage Log · 항해 일지",
+  nodes: [
+    {
+      id: "kepler",
+      title: "Kepler Orbit",
+      summary: "Equal areas in equal times — Kepler's 2nd law.",
+      meta: { x: 12, y: 50 },
+      reward: { xp: 10 },
+      lesson: <KeplerLesson />,
+    },
+    {
+      id: "slingshot",
+      title: "Gravity Assist",
+      summary: "Trade planet velocity for spacecraft velocity.",
+      requires: ["kepler"],
+      meta: { x: 32, y: 28 },
+      reward: { xp: 15 },
+      lesson: <SlingshotLesson />,
+    },
+    {
+      id: "elevator",
+      title: "Equivalence Elevator",
+      summary: "Acceleration in deep space vs standing in gravity.",
+      requires: ["slingshot"],
+      meta: { x: 52, y: 28 },
+      reward: { xp: 15 },
+      lesson: <ElevatorLesson />,
+    },
+    {
+      id: "dilation",
+      title: "Time Dilation",
+      summary: "Clocks run slower deep in a gravity well.",
+      requires: ["slingshot"],
+      meta: { x: 52, y: 72 },
+      reward: { xp: 20 },
+      lesson: <DilationLesson />,
+    },
+    {
+      id: "lens",
+      title: "Light Bend",
+      summary: "Mass deflects light — from double images to a ring.",
+      requires: ["elevator", "dilation"],
+      meta: { x: 72, y: 50 },
+      reward: { xp: 20 },
+      lesson: <LensLesson />,
+    },
+    {
+      id: "sync",
+      title: "Clock Sync",
+      summary: "Reconcile two clocks after a round-trip near a well.",
+      requires: ["lens"],
+      meta: { x: 90, y: 50 },
+      reward: { xp: 30 },
+      lesson: <SyncLesson />,
+    },
+  ],
+};
 
-  const planets = useMemo(
-    () =>
-      Array.from({ length: count }, (_, i) => ({
-        a: 3 + i * 2.1,
-        e: ecc * (1 - i * 0.15),
-        size: 0.3 + (i % 3) * 0.12,
-        speed: speed / Math.sqrt(3 + i * 2.1), // outer planets orbit slower (Kepler)
-        color: PALETTE[i % PALETTE.length],
-        phase: i * 1.7,
-      })),
-    [count, ecc, speed],
-  );
-
-  const reset = () => {
-    setSpeed(0.5);
-    setEcc(0.2);
-    setCount(3);
-    setShowOrbits(true);
-  };
-
+export default function VoyageLog() {
   return (
-    <Lesson
-      topic="Astronomy"
-      title="How planets orbit"
-      lead="A code-generated solar system. Drag to rotate the camera; use the panel to change the orbits. Every body and path here is procedural geometry — no 3D assets."
-    >
-      <Prose>
-        <p>
-          Planets trace <strong>ellipses</strong> with the star at one focus. Outer planets move
-          slower — a taste of Kepler's third law. Reshape the orbits and watch the motion respond.
-        </p>
-      </Prose>
-
-      <Workbench
-        title="Solar system"
-        panelTitle="Orbits"
-        onReset={reset}
-        controls={
-          <>
-            <ControlGroup label="Motion">
-              <ParamSlider label="Speed" value={speed} min={0} max={1.5} step={0.05} onChange={setSpeed} format={(v) => v.toFixed(2)} />
-              <ParamSlider label="Eccentricity" value={ecc} min={0} max={0.6} step={0.02} onChange={setEcc} format={(v) => v.toFixed(2)} />
-            </ControlGroup>
-            <ControlGroup label="Bodies">
-              <ParamSlider label="Planets" value={count} min={1} max={5} onChange={setCount} />
-              <ParamSwitch label="Show orbit paths" checked={showOrbits} onChange={setShowOrbits} />
-            </ControlGroup>
-          </>
-        }
-      >
-        <Scene3D mood="space" height={420} camera={[0, 8, 14]}>
-          <Body radius={1.1} color="#ffcc55" emissive="#ff9900" emissiveIntensity={0.7} />
-          <Label3D position={[0, 1.7, 0]}>Star</Label3D>
-          {planets.map((p, i) => (
-            <group key={i}>
-              {showOrbits ? <OrbitPath a={p.a} e={p.e} /> : null}
-              <Planet a={p.a} e={p.e} size={p.size} speed={p.speed} color={p.color} phase={p.phase} />
-            </group>
-          ))}
-        </Scene3D>
-      </Workbench>
-
-      <Callout title="Why the ellipse is off-center">
-        The star sits at a <em>focus</em> of each ellipse, not its center. The higher the
-        eccentricity, the more stretched the orbit and the more off-center the star appears.
-      </Callout>
-
-      <Quiz
-        question="Where is the star located relative to a planet's elliptical orbit?"
-        options={[
-          { label: "At the exact center", hint: "That would be a circle, not a general ellipse." },
-          { label: "At one of the two foci", correct: true, hint: "Right — Kepler's first law." },
-          { label: "Outside the orbit", hint: "The star is always inside the ellipse." },
-          { label: "It moves around the orbit too", hint: "The star stays put; the planet orbits it." },
-        ]}
-      />
-    </Lesson>
+    <CurriculumHost
+      curriculum={curriculum}
+      pack={world3dPack}
+      onEvent={(e) => console.debug("[voyage]", e.type, "nodeId" in e ? e.nodeId : "", e.progress)}
+    />
   );
 }
