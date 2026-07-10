@@ -2,8 +2,8 @@ packages:
   - apps/*
   - packages/*
 allowBuilds:
-  # labs doesn't use next/image; sharp's native build is unnecessary.
-  sharp: false
+  # Vite/labs bundles with esbuild — allow its native binary to build.
+  esbuild: true
 
 # examples/* are intentionally NOT workspace members — each example (e.g.
 # voyage-log) is a self-contained generated app with its own lockfile and is

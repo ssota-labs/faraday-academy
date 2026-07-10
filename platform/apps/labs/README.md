@@ -1,45 +1,39 @@
 # Faraday Labs
 
-An **internal** catalog for the dev team — a live, read-only view of the two things we keep
-building against:
+An **internal** Vite lab for the dev team that does two things:
 
-- **UI components** (`/components`) — the `@faraday/runtime` layer that gets vendored into every
-  lesson, grouped by folder (Blocks, UI primitives, Runtime, World, LMS). Each card shows a
-  component's header doc, exported symbols, and source path.
-- **Skills & packs** (`/skills`) — what the agent plugins expose: the `faraday` skill + its phase
+- **Components** — renders the `@faraday/runtime` blocks **live** from demo stories, grouped
+  (Blocks, UI, Runtime, World, LMS), with each block's header doc, exported symbols, source path,
+  and a usage snippet. Click a block in the sidebar to preview it.
+- **Skills & Packs** — catalogs what the agent plugins expose: the `faraday` skill + its phase
   references, the slash commands, the authoring subagent, plus the world packs and feature packs
-  (`--3d` / `--tutor`) the CLI overlays at scaffold time.
+  (`--3d` / `--tutor`) the CLI overlays.
 
-It answers "what UI components exist?" and "which skills/packs are ready?" without leaving your
-editor — and it never drifts, because it reads straight from the source tree at request time.
+## Why Vite (not Next)
+
+Previews must match production. A generated lesson is a **Vite + React 19** app where components
+import via the `@/faraday/*` alias and are themed by `faraday.css`. This lab recreates exactly that
+environment — same alias (pointed at `packages/runtime`), same stylesheet, wrapped in
+`ThemeProvider` + `.style-faraday` like `LessonHost` — so a block renders here identically to how it
+renders in a real lesson.
 
 ## Run it
 
 ```bash
-pnpm install            # from platform/ (workspace) or this dir
-pnpm --filter @faraday/labs dev
-# → http://localhost:4200
+pnpm install                       # from platform/ (workspace)
+pnpm --filter @faraday/labs dev    # → http://localhost:4200
 ```
-
-`next dev` re-reads the source on every request, so edit a component's header doc or add a skill
-reference and just refresh.
 
 ## How it works
 
-`lib/catalog.ts` is a `server-only` module that walks the repo with `node:fs`:
+- **Live previews** — `src/stories.tsx` holds one demo per block (real components, real props). The
+  preview canvas renders them inside the same theme + style wrapper a lesson uses. Stories live in
+  the labs app, **not** in `packages/runtime`, so the vendored runtime stays clean + SHA-lockable.
+- **Catalog metadata** — `src/catalog.ts` parses raw source via Vite `import.meta.glob`: runtime
+  component groups (header docs + exports), the skill/commands/agents/plugins under `plugins/`, and
+  the world/feature packs. No server needed.
 
-- component groups ← `platform/packages/runtime/{blocks,ui,runtime,world,lms}` (header comment +
-  `export` scan)
-- skill / commands / agents ← `plugins/claude-code/**` (front-matter + first `# H1`)
-- world packs ← `platform/packages/runtime/world/packs`, feature packs ← `platform/packages/cli/templates`
-- plugins ← each `plugins/*/…/plugin.json`
+## Adding a preview
 
-The repo root is found by walking up until a folder contains both `platform/` and `plugins/`, so it
-works whether `next dev` runs from here or the workspace root. Pages are `force-dynamic` (no caching)
-so the catalog is always current.
-
-## Scope
-
-Metadata catalog, not a live playground — it does **not** render the components (they target a
-generated Vite lesson's `@/faraday/*` alias + Tailwind setup, and many are interactive/3D). Live
-interactive previews are a possible next step.
+A new block has a card but no live render until you add a story. Add an entry to `DEMOS` in
+`src/stories.tsx` keyed by the component name, with a `render()` and a `source` snippet.
