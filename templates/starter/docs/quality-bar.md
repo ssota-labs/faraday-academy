@@ -5,10 +5,13 @@ against it **before** reporting done; a lesson or world that misses a MUST is no
 finished, even if it compiles and renders. The bar is topic-agnostic on purpose —
 do not tune output to one demo subject.
 
-There are two surfaces, with different bars: the **world / roadmap screen** (a
-game) and the **lesson page** (a textbook chapter). The core failure mode is
-blending them: a roadmap that reads like a document, or a lesson that's a single
-gadget with three sentences around it.
+There are two content surfaces, with different bars: the **world / roadmap
+screen** (a game) and the **lesson page** (a textbook chapter). The core failure
+mode is blending them: a roadmap that reads like a document, or a lesson that's a
+single gadget with three sentences around it. Surface 3 grades how the
+interactives *feel*. Surface 4 grades the **opt-in AI tutor** (`--tutor`) — and
+unlike the others it is judged by **behavior over an API**, not pixels, because it
+is a server-backed durable agent rather than a rendered view.
 
 ## Surface 1 — world / roadmap screens (map2d, world3d, rpg packs)
 
@@ -157,6 +160,58 @@ scene that has grabbable objects; state that jumps with no transition; a "Run"
 that recomputes an SVG with no visible motion when the concept is a process;
 invisible interactivity (nothing signals what's manipulable).
 
+## Surface 4 — the AI tutor (`--tutor`, opt-in / server-backed)
+
+The tutor is not a view — it is a durable chat agent grounded in the lesson. It
+is graded by **what it does over `/api/chat`**, not by a screenshot. It is opt-in:
+a lesson with no open-ended goal should not have one at all.
+
+MUST:
+
+- **Warranted, not bolted on.** Add a tutor **only** when a learning outcome needs
+  free-text judgment — an explain / argue / design / discuss goal (the open-response
+  row in assessment.md). A `<Tutor>` on a lesson whose checks are all
+  recognize / compute / predict / do is scope creep and fails. The *reason* it was
+  added must trace to an open-ended outcome, not "it's a nice feature".
+- **Grounded in the actual material.** `<Tutor context={…}>` is fed the real lesson
+  or section text (or the relevant slice) — never an empty or generic context. Its
+  answers are traceable to that material; asked something outside it, it steers back
+  instead of free-associating from world knowledge.
+- **Socratic — no answer-dumping, no leaking.** It hints and asks rather than
+  handing over the final answer, and it **never reveals the solution to the lesson's
+  graded checks** (quiz / exercise answers) even on a direct "just tell me the
+  answer" — it deflects and redirects to reasoning.
+- **On the same page as the lesson.** The tutor is embedded in the lesson surface —
+  a panel co-existing with the content it is grounded in, on the same page — not a
+  separate chat route or a full-page chatbot detached from the material.
+- **The durable pipeline is real.** `POST /api/chat` returns **200 + an
+  `x-workflow-run-id`**, and the run is resumable: `GET
+  /api/chat/{runId}/stream?startIndex=` replays the *same* run, so a refresh, a
+  network drop, or a timeout does not lose the turn. (With a key: a real token
+  stream. Without a key: 200 + an empty envelope + a `GatewayAuthenticationError`
+  only in the dev log — that is the keyless *pass* tier for the pipeline, not a
+  failure.)
+- **Server only when needed; locked tree intact.** Only `--tutor` adds the `api/` +
+  `workflows/` layer — non-tutor lessons in the same build stay static and
+  server-free. The author touched only `workflows/tutor-agent.ts` (persona, model,
+  rules) and the embed site; `src/faraday/tutor/**` (vendored chat UI + client) is
+  unedited and `faraday check` passes.
+
+SHOULD:
+
+- Reasoning models stream their thinking into a collapsible "Thinking" block.
+- The persona / tone matches the audience methodology (a Socratic tutor for children
+  reads differently from one for professionals — see audience.md).
+- The grounding prefix is byte-stable (deterministic `buildInstructions`) so implicit
+  prompt caching works across a conversation.
+- The greeting orients the learner to what they can usefully ask.
+
+Anti-patterns (automatic fail): a tutor on a lesson with no open-ended goal
+(decoration); an ungrounded `<Tutor>` (empty/generic context) that answers from
+world knowledge and drifts off-topic; leaking a quiz/exercise answer on direct
+request; a detached full-page chatbot with no tie to the page content; any edit
+under `src/faraday/tutor/**` (`faraday check` fails).
+
 ## How to grade (for the verify pass)
 
 Walk the shipped thing at a real viewport, light + dark:
@@ -169,3 +224,19 @@ Walk the shipped thing at a real viewport, light + dark:
 4. Spot-check one derived value against the model (truth check).
 5. Report as a checklist with pass/fail per MUST — not an impression. Any MUST
    fail → keep iterating; don't ship.
+
+If the build has a tutor (`--tutor`), grade Surface 4 too — over the API, not by
+screenshot:
+
+6. First confirm the tutor is **warranted**: the lesson must have an open-ended
+   (explain/argue/design/discuss) outcome. If every check is
+   recognize/compute/predict/do, the tutor itself is the failure — stop here.
+7. `pnpm dev`, then `curl -N POST /api/chat` a grounded question → with a key,
+   expect `text-delta` tokens carrying a grounded, Socratic answer. Two adversarial
+   probes: (a) "just tell me the quiz answer" → must NOT leak; (b) a question
+   outside the material → must steer back. Keyless, expect the 200 + empty
+   envelope + `GatewayAuthenticationError` in the dev log (pipeline pass tier).
+8. Durability: capture `x-workflow-run-id` from the POST, then
+   `GET /api/chat/{runId}/stream?startIndex=0` → confirm the same run replays.
+9. Browser only for the visual "Thinking" block. Confirm `faraday check` passes and
+   `src/faraday/tutor/**` is unmodified.
