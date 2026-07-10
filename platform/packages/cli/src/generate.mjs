@@ -14,10 +14,16 @@ import { sanitizePackageName, normalizeTitle } from "./pkg.mjs";
 const PACKAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const TITLE_PLACEHOLDER = "Faraday Lesson";
 
-function sourcePaths(root = PACKAGE_ROOT) {
+// The Faraday runtime layer lives in a sibling workspace package
+// (@faraday/runtime) and is still vendored (copied + SHA-locked) into generated
+// apps — it is a first-class package, not an installed dependency. The starter +
+// addon scaffolding assets stay CLI-owned under this package's templates/.
+const RUNTIME_ROOT = path.resolve(PACKAGE_ROOT, "..", "runtime");
+
+function sourcePaths(root = PACKAGE_ROOT, runtimeRoot = RUNTIME_ROOT) {
   return {
     starter: path.join(root, "templates", "starter"),
-    faraday: path.join(root, "templates", "faraday"),
+    faraday: runtimeRoot,
     addon3d: path.join(root, "templates", "addon-3d"),
     addonTutor: path.join(root, "templates", "addon-tutor"),
   };
