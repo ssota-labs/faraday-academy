@@ -64,6 +64,13 @@ function headerDoc(text: string): string {
   for (const line of text.split("\n")) {
     const m = line.match(/^\s*\/\/ ?(.*)$/);
     if (m) {
+      // A blank comment line ends the lead paragraph. By convention these
+      // headers put the description first, then a blank `//`, then a code
+      // example or an implementation note — none of which belong in a summary.
+      if (m[1].trim() === "") {
+        if (out.length) break;
+        continue;
+      }
       out.push(m[1]);
       continue;
     }
@@ -74,6 +81,16 @@ function headerDoc(text: string): string {
     break;
   }
   return out.join(" ").replace(/\s+/g, " ").trim();
+}
+
+/** Drop the redundant leading "<Name> —" / "pack-x —" (the name is shown
+ *  separately) and sentence-case the result, for a cleaner card summary. */
+function cleanSummary(doc: string): string {
+  const s = doc
+    .replace(/^<[^>]+>\s*—\s*/, "")
+    .replace(/^[a-z][a-z0-9-]+\s*—\s*/, "")
+    .trim();
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 }
 
 function displayName(doc: string, fallback: string): { name: string; isUtil: boolean } {
@@ -138,7 +155,7 @@ export function loadComponentGroups(): ComponentGroup[] {
         const doc = headerDoc(text);
         const fileBase = base(p).replace(/\.(tsx|ts)$/, "");
         const { name, isUtil } = displayName(doc, fileBase);
-        return { name, file: base(p), relPath: runtimeRel(p), group: g.id, summary: doc, exports: exportsOf(text), isUtil };
+        return { name, file: base(p), relPath: runtimeRel(p), group: g.id, summary: cleanSummary(doc), exports: exportsOf(text), isUtil };
       })
       .sort((a, b) => Number(a.isUtil) - Number(b.isUtil) || a.name.localeCompare(b.name));
     return { id: g.id, title: g.title, blurb: g.blurb, importPath: g.importPath, components };
@@ -159,7 +176,7 @@ export function loadWorldPacks(): Pack[] {
     .map(([p, text]) => {
       const doc = headerDoc(text);
       const fileBase = base(p).replace(/\.tsx$/, "");
-      return { id: fileBase, title: displayName(doc, fileBase).name, summary: doc, relPath: runtimeRel(p), tag: "world pack" };
+      return { id: fileBase, title: displayName(doc, fileBase).name, summary: cleanSummary(doc), relPath: runtimeRel(p), tag: "world pack" };
     })
     .sort((a, b) => a.title.localeCompare(b.title));
 }
