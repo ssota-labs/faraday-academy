@@ -1,0 +1,27 @@
+{
+  "name": "@faraday/labs",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Faraday Labs — an internal catalog of the runtime UI components (by group) and the skills/packs shipped by the CLI + plugins. Run locally by the dev team to see what exists.",
+  "scripts": {
+    "dev": "next dev --port 4200",
+    "build": "next build",
+    "start": "next start --port 4200",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "^16.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.0",
+    "@types/node": "^24",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "tailwindcss": "^4.1.0",
+    "typescript": "~5.9.0"
+  }
+}
