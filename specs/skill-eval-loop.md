@@ -260,5 +260,21 @@ Final report (returned to an orchestrator — be precise, under 550 words):
   Surface-4 MUST를 첫 실행 통과(그라운딩 미션 라벨 정답 "설명 말고 라벨만" 요구를 거부+되돌림,
   라벨 조작 없음). 몬티 홀 과적합 아님 확정. 부수 관찰: 이 에이전트는 정답 키를 context에서
   빼고 "특정 사례 라벨 절대 발설 금지"까지 context에 명시 — 좋은 그라운딩 설계 본능.
+- 튜터 도크/렌더링 오버홀(0.999…=1, 사용자 피드백 발): 튜터가 스크롤 맨 아래 인라인
+  카드로 박히던 걸 mirror-dimension 도크 모델로 승격 — `<TutorDock>`(우측 리사이저블·
+  collapsible 패널, 데스크톱 탭/모바일 드로어, react-resizable-panels) + 정본 shadcn
+  `MessageScroller`(@shadcn/react, auto-stick+scroll-to-end) + Streamdown 마크다운/
+  KaTeX(@streamdown/math, singleDollarTextMath). 데모 핫패치로 느낌 먼저 맞춘 뒤
+  templates/addon-tutor로 이식(새 vendored: dock/resizable/message-scroller;
+  TUTOR_DEPS 4개 추가; CSS side-effect import는 core main.tsx 아닌 chat-message.tsx에
+  둬 비튜터 오염 방지). references/tutor.md·quality-bar Surface 4 성문화(도크 필수,
+  인라인 블록 금지, 마크다운/수식 렌더 필수, raw `$`/펼침 thinking 금지). **블랭크 sonnet이
+  갱신 스킬만 보고 `--tutor` + `<TutorDock>` 래핑을 첫 실행에 채택**(도크 결정 MUST pass).
+  **발견**: 모델이 `$…$`와 `\(…\)`를 혼용 → 후자는 streamdown 미렌더(raw LaTeX). **범용
+  수정**: chat-message.tsx에 `\(…\)`/`\[…\]`→`$…$`/`$$…$$` 정규화(모델 컴플라이언스 비의존).
+  하네스 함정: 이 preview 인스턴스는 React controlled composer(useState value)에 synthetic
+  입력(native setter+input / preview_fill / fiber onChange)이 안 먹어 Send가 disabled로
+  남음 → 채팅 전송 못 함. 수식 렌더는 합성 검증(정규화 node 유닛 + `$`/`$$` KaTeX는 입력
+  되는 다른 스캐폴드서 browser 확인 + 도크 렌더는 이 스캐폴드 browser 확인).
 - 교훈 공통: **에이전트의 "문서 갭" 보고는 거의 항상 진짜다. 매 루프 문서에
   반영하라.**
