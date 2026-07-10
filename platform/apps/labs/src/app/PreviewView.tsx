@@ -60,7 +60,6 @@ export function PreviewView({ groups }: { groups: ComponentGroup[] }) {
                       }
                     >
                       <span className="font-mono text-[13px]">{c.name}</span>
-                      {DEMOS[c.name] && <span className="size-1.5 rounded-full bg-primary" title="live preview" />}
                     </button>
                   ))}
                 </div>
