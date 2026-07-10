@@ -3,8 +3,11 @@ import type { Component, ComponentGroup } from "@/catalog";
 import { DEMOS } from "@/stories";
 
 const GROUP_DOT: Record<string, string> = {
-  blocks: "var(--chart-1)",
-  ui: "var(--chart-2)",
+  "blocks-structure": "var(--chart-1)",
+  "blocks-model": "var(--chart-2)",
+  "blocks-data": "var(--chart-3)",
+  "blocks-assessment": "var(--chart-4)",
+  "blocks-explain": "var(--chart-5)",
   runtime: "var(--chart-3)",
   world: "var(--chart-4)",
   lms: "var(--chart-5)",
@@ -18,6 +21,7 @@ export function PreviewView({ groups }: { groups: ComponentGroup[] }) {
 
   const q = query.trim().toLowerCase();
   const current = all.find((c) => c.relPath === selected) ?? firstWithDemo;
+  const currentGroup = groups.find((g) => g.components.some((c) => c.relPath === current?.relPath));
 
   return (
     <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
@@ -67,16 +71,36 @@ export function PreviewView({ groups }: { groups: ComponentGroup[] }) {
       </aside>
 
       {/* detail */}
-      <main className="min-w-0">{current ? <Detail component={current} /> : <p>Nothing selected.</p>}</main>
+      <main className="min-w-0">
+        {current ? (
+          <Detail component={current} groupTitle={currentGroup?.title} groupBlurb={currentGroup?.blurb} />
+        ) : (
+          <p>Nothing selected.</p>
+        )}
+      </main>
     </div>
   );
 }
 
-function Detail({ component }: { component: Component }) {
+function Detail({
+  component,
+  groupTitle,
+  groupBlurb,
+}: {
+  component: Component;
+  groupTitle?: string;
+  groupBlurb?: string;
+}) {
   const demo = DEMOS[component.name];
   return (
     <div className="flex flex-col gap-5">
       <header className="flex flex-col gap-1.5">
+        {groupTitle && (
+          <div className="text-xs">
+            <span className="font-semibold uppercase tracking-wide text-muted-foreground">{groupTitle}</span>
+            {groupBlurb && <span className="text-muted-foreground/70"> — {groupBlurb}</span>}
+          </div>
+        )}
         <div className="flex items-center gap-2">
           <h1 className="font-mono text-xl font-semibold">{component.name}</h1>
           {component.isUtil && (

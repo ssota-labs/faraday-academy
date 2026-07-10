@@ -11,6 +11,7 @@ import {
   loadWorldPacks,
 } from "@/catalog";
 import { DEMOS } from "@/stories";
+import { BLOCK_GROUPS } from "@/block-groups";
 import { PreviewView } from "./PreviewView";
 import { SkillsView } from "./SkillsView";
 import { LayoutsView } from "./LayoutsView";
@@ -35,13 +36,25 @@ export function App() {
   const [tab, setTab] = useState<Tab>("components");
   // Only show components that actually have a live preview. This drops the UI
   // primitives group and the non-visual hooks/logic/types entirely.
-  const groups = useMemo(
-    () =>
-      loadComponentGroups()
-        .map((g) => ({ ...g, components: g.components.filter((c) => DEMOS[c.name]) }))
-        .filter((g) => g.components.length > 0),
-    [],
-  );
+  const groups = useMemo(() => {
+    const base = loadComponentGroups()
+      .map((g) => ({ ...g, components: g.components.filter((c) => DEMOS[c.name]) }))
+      .filter((g) => g.components.length > 0);
+    // Split the flat blocks group into functional sub-groups (by authoring role).
+    return base.flatMap((g) => {
+      if (g.id !== "blocks") return [g];
+      return BLOCK_GROUPS.map((bg) => ({
+        id: `blocks-${bg.id}`,
+        title: bg.title,
+        blurb: bg.blurb,
+        importPath: g.importPath,
+        components: bg.members.flatMap((name) => {
+          const c = g.components.find((x) => x.name === name);
+          return c ? [c] : [];
+        }),
+      })).filter((sg) => sg.components.length > 0);
+    });
+  }, []);
   const skill = useMemo(loadSkill, []);
   const commands = useMemo(loadCommands, []);
   const agents = useMemo(loadAgents, []);
