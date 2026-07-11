@@ -1,6 +1,6 @@
 // Demo lesson: an interactive walk-through of bubble sort, in a workbench layout
 // (center canvas + right control dock, like mirror-dimension) plus a shadcn chart.
-// AUTHOR AREA — rewrite this file. Everything under src/faraday/ is vendored and locked.
+// AUTHOR AREA — rewrite this file. The -kit/kit package is a pinned dependency.
 import { useMemo, useState } from "react";
 import {
   Lesson,
@@ -14,9 +14,9 @@ import {
   Quiz,
   Reveal,
   Stat,
-} from "@/faraday/blocks";
-import { Button } from "@/faraday/ui/button";
-import { useStepper } from "@/faraday/runtime";
+} from "@faraday-kit/kit/blocks";
+import { Button } from "@faraday-kit/kit/ui/button";
+import { useStepper } from "@faraday-kit/kit/runtime";
 
 interface Frame {
   array: number[];
