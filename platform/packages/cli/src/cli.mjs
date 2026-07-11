@@ -4,26 +4,23 @@
 import path from "node:path";
 import fs from "node:fs/promises";
 import spawn from "node:child_process";
-import { fileURLToPath } from "node:url";
 import { generateLesson } from "./generate.mjs";
 import { sanitizePackageName } from "./pkg.mjs";
-import { MANIFEST_NAME, verifyManifest } from "./manifest.mjs";
 
 const HELP = `faraday — scaffold AI-authored interactive lessons (shadcn-based)
 
 Usage:
-  faraday new <name> [--3d | --physics] [--tutor] [--at <dir>] [--overwrite] [--skip-install] [--json]
-  faraday check [--dir <lesson>]        verify the protected src/faraday/** tree
+  faraday new <name> [--at <dir>] [--overwrite] [--skip-install] [--json]
+  faraday check [--dir <lesson>]        verify the lesson layout + runtime pin
   faraday help
 
-  --3d        include the Three.js (React Three Fiber) 3D block + a solar-system demo.
-              Omit it for 2D lessons — three is never installed or bundled without it.
-  --physics   like --3d, plus the Rapier physics engine + a gravity/collision demo.
-  --tutor     add a durable, grounded AI chat tutor (<Tutor>). Turns the app into a
-              Vite + Nitro + Workflow hybrid with api/ routes. Needs AI_GATEWAY_API_KEY
-              in .env.local locally; deploys to Vercel. Static lessons stay server-free.
+The generated lesson depends on the versioned @faraday-academy/runtime package
+(pinned exactly) instead of vendoring it. Author your lesson in src/lesson/.
 
-Exit codes: 0 ok · 1 lesson check failed · 2 usage error · 4 environment error`;
+  --3d / --physics / --tutor are being repackaged as @faraday-academy/* addon
+  packages and are temporarily unavailable; scaffold a 2D lesson for now.
+
+Exit codes: 0 ok · 1 check failed · 2 usage error · 4 environment error`;
 
 function makeContext(context = {}) {
   return {
@@ -110,8 +107,6 @@ async function runNew(argv, context) {
   let installed = false;
   if (!skip) {
     try {
-      // Under --json, stdout must stay pure JSON — keep pnpm's install chatter off
-      // it (route child stdout to /dev/null; errors still surface on stderr).
       const installStdio = opts.json ? ["ignore", "ignore", "inherit"] : "inherit";
       await context.runCommand("pnpm", ["install"], { cwd: targetDir, stdio: installStdio });
       installed = true;
@@ -123,38 +118,53 @@ async function runNew(argv, context) {
   }
 
   const rel = path.relative(context.cwd, targetDir) || ".";
-  // The tutor needs an AI Gateway key locally — surface that before `pnpm dev`.
-  const tutorSteps = opts.tutor ? ["cp env.example .env.local  # then paste your AI_GATEWAY_API_KEY"] : [];
   if (opts.json) {
     context.stdout(JSON.stringify({
       ok: true, command: "new", title: result.title, packageName: result.packageName,
-      dir: targetDir, protectedFiles: result.protectedFiles, installed, tutor: opts.tutor,
-      nextSteps: [`cd ${targetDir}`, ...(installed ? [] : ["pnpm install"]), ...tutorSteps, "pnpm dev"],
+      dir: targetDir, installed,
+      nextSteps: [`cd ${targetDir}`, ...(installed ? [] : ["pnpm install"]), "pnpm dev"],
     }, null, 2) + "\n");
   } else {
-    const tutorLine = opts.tutor
-      ? `    cp env.example .env.local   # paste your AI_GATEWAY_API_KEY (see env.example)\n`
-      : "";
     context.stdout(
-      `\n  Created ${result.title} in ${rel}/  (${result.protectedFiles} protected files)\n\n` +
-      `  Next:\n    cd ${rel}\n${installed ? "" : "    pnpm install\n"}${tutorLine}    pnpm dev\n\n` +
-      `  Author your lesson in src/lesson/lesson.tsx — the shadcn layer under src/faraday/ is locked.\n` +
-      (opts.tutor ? `  Tutor: embed <Tutor context={…} /> from "@/faraday/tutor"; api/ + workflows/ hold the durable server.\n` : ""),
+      `\n  Created ${result.title} in ${rel}/\n\n` +
+      `  Next:\n    cd ${rel}\n${installed ? "" : "    pnpm install\n"}    pnpm dev\n\n` +
+      `  Author your lesson in src/lesson/lesson.tsx — the UI, blocks, and runtime come\n` +
+      `  from the pinned @faraday-academy/runtime dependency.\n`,
     );
   }
 }
 
+async function exists(p) { try { await fs.stat(p); return true; } catch { return false; } }
+
+/** A lesson root is the nearest ancestor whose package.json depends on the runtime. */
 async function findLessonRoot(start) {
   let dir = start;
   for (;;) {
-    if (await exists(path.join(dir, MANIFEST_NAME))) return dir;
+    const pkgPath = path.join(dir, "package.json");
+    if (await exists(pkgPath)) {
+      try {
+        const pkg = JSON.parse(await fs.readFile(pkgPath, "utf8"));
+        if (pkg.dependencies?.["@faraday-academy/runtime"]) return dir;
+      } catch {
+        /* unreadable package.json — keep walking up */
+      }
+    }
     const parent = path.dirname(dir);
     if (parent === dir) return null;
     dir = parent;
   }
 }
 
-async function exists(p) { try { await fs.stat(p); return true; } catch { return false; } }
+const REQUIRED_FILES = [
+  "index.html",
+  "vite.config.ts",
+  "tsconfig.json",
+  "components.json",
+  "src/main.tsx",
+  "src/app.css",
+  "src/lesson/lesson.tsx",
+  "package.json",
+];
 
 async function runCheck(argv, context) {
   let dir;
@@ -164,16 +174,31 @@ async function runCheck(argv, context) {
   }
   const start = dir ? path.resolve(context.cwd, dir) : context.cwd;
   const root = await findLessonRoot(start);
-  if (!root) { const e = new Error("no .faraday-manifest.json found — not inside a lesson"); e.exitCode = 2; throw e; }
+  if (!root) {
+    const e = new Error("no @faraday-academy/runtime lesson found here — run inside a generated lesson");
+    e.exitCode = 2;
+    throw e;
+  }
 
-  const manifest = JSON.parse(await fs.readFile(path.join(root, MANIFEST_NAME), "utf8"));
-  const findings = await verifyManifest(path.join(root, "src", "faraday"), manifest);
-  if (findings.length === 0) {
-    context.stdout("faraday check: protected tree intact\n");
+  const problems = [];
+  for (const rel of REQUIRED_FILES) {
+    if (!(await exists(path.join(root, rel)))) problems.push(`missing required file: ${rel}`);
+  }
+  try {
+    const pkg = JSON.parse(await fs.readFile(path.join(root, "package.json"), "utf8"));
+    const pin = pkg.dependencies?.["@faraday-academy/runtime"];
+    if (!pin) problems.push("@faraday-academy/runtime is not a dependency");
+    else if (!/^\d+\.\d+\.\d+/.test(pin)) problems.push(`@faraday-academy/runtime must be pinned exactly, found "${pin}"`);
+  } catch {
+    problems.push("package.json is missing or unreadable");
+  }
+
+  if (problems.length === 0) {
+    context.stdout("faraday check: lesson layout intact, runtime pinned\n");
     return;
   }
-  for (const f of findings) context.stderr(`  [${f.code}] ${f.file} — ${f.message}\n`);
-  const e = new Error(`${findings.length} integrity finding(s) in src/faraday/`);
+  for (const p of problems) context.stderr(`  ${p}\n`);
+  const e = new Error(`${problems.length} check finding(s)`);
   e.exitCode = 1;
   throw e;
 }

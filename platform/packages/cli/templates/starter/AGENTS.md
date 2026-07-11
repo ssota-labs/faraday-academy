@@ -33,7 +33,7 @@ This uses the shadcn **CSS-style** convention, not inline utility soup:
 
 ## Blocks you assemble
 
-Import from `@/faraday/blocks`; raw shadcn primitives are in `@/faraday/ui/*`.
+Import from `@faraday-academy/runtime/blocks`; raw shadcn primitives are in `@faraday-academy/runtime/ui/*`.
 
 - `<Lesson title lead topic?>` — page frame. Put everything inside it.
 - `<Prose heading?>` — a text section.
@@ -45,7 +45,7 @@ Import from `@/faraday/blocks`; raw shadcn primitives are in `@/faraday/ui/*`.
   omit it when all interaction lives on the canvas (drag handles, overlay
   buttons) and the canvas takes full width; use it for secondary or numerous
   parameters. `onReset` adds a reset button.
-- **Motion hooks** (from `@/faraday/runtime`) — use these instead of hand-rolled
+- **Motion hooks** (from `@faraday-academy/runtime/runtime`) — use these instead of hand-rolled
   rAF so nothing snaps: `useAnimatedValue(target)` (render from it → discrete
   changes ease, never teleport), `useRafLoop(cb, playing)` (keep dynamic systems
   moving, Play/Pause in `hud`), `useSvgDrag(onDrag)` (drag objects in viewBox
@@ -100,7 +100,7 @@ Import from `@/faraday/blocks`; raw shadcn primitives are in `@/faraday/ui/*`.
   wants one idea per screen (young learners, kiosk/tablet); the default lesson
   layout remains the book-like vertical scroll.
 - `useStepper(total, { fps? })` — cursor + autoplay over an ordered list of frames.
-- `<Course title chapters>` (from `@/faraday/runtime`) — bundle several lessons into a
+- `<Course title chapters>` (from `@faraday-academy/runtime/runtime`) — bundle several lessons into a
   navigable textbook (chapter nav, prev/next, #hash routing). Use it as the default export.
 
 Light/dark toggle and the reading column come from the runtime — you don't add them.
