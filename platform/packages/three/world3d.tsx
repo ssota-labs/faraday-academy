@@ -6,9 +6,9 @@ import { useEffect, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Html, Line } from "@react-three/drei";
 import type { Mesh, PerspectiveCamera } from "three";
-import type { WorldNode, WorldPack } from "@/faraday/world";
-import { Scene3D } from "@/faraday/three";
-import type { Mood } from "@/faraday/three";
+import type { WorldNode, WorldPack } from "@faraday-academy/runtime/world";
+import { Scene3D } from "./scene";
+import type { Mood } from "./moods";
 
 type Vec3 = [number, number, number];
 const SPAN = 16;

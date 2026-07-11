@@ -3,9 +3,9 @@
 // floor and each other. AUTHOR AREA — rewrite it. The 3D block is locked.
 import { useState } from "react";
 import { Physics, RigidBody } from "@react-three/rapier";
-import { Lesson, Prose, Workbench, ControlGroup, ParamSlider, Callout, Quiz } from "@/faraday/blocks";
-import { Button } from "@/faraday/ui/button";
-import { Scene3D } from "@/faraday/three";
+import { Lesson, Prose, Workbench, ControlGroup, ParamSlider, Callout, Quiz } from "@faraday-academy/runtime/blocks";
+import { Button } from "@faraday-academy/runtime/ui/button";
+import { Scene3D } from "@faraday-academy/three";
 
 const COLORS = ["#8b9cf6", "#5eead4", "#fbbf24", "#fb7185", "#a78bfa", "#38bdf8"];
 

@@ -1,7 +1,7 @@
 // <Scene3D> — a preconfigured React Three Fiber canvas: perspective camera,
 // OrbitControls, ambient + key light, transparent background (so the Card behind
 // shows through). Drop it into a <Workbench> center; put procedural meshes (or a
-// loaded <Model>) inside. Importing from "@/faraday/three" is what pulls three +
+// loaded <Model>) inside. Importing from "@faraday-academy/three" is what pulls three +
 // R3F into the bundle — 2D lessons that never import it stay light.
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";

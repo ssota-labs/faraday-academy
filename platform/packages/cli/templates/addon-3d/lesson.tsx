@@ -2,8 +2,8 @@
 // system. Every object here is procedural Three.js geometry — no assets. This is
 // the AUTHOR AREA; rewrite it. The 3D block under src/faraday/three is locked.
 import { useMemo, useState } from "react";
-import { Lesson, Prose, Workbench, ControlGroup, ParamSlider, ParamSwitch, Callout, Quiz } from "@/faraday/blocks";
-import { Scene3D, Body, OrbitPath, Planet, Label3D } from "@/faraday/three";
+import { Lesson, Prose, Workbench, ControlGroup, ParamSlider, ParamSwitch, Callout, Quiz } from "@faraday-academy/runtime/blocks";
+import { Scene3D, Body, OrbitPath, Planet, Label3D } from "@faraday-academy/three";
 
 const PALETTE = ["#8b9cf6", "#5eead4", "#fbbf24", "#fb7185", "#a78bfa"];
 

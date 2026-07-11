@@ -3,9 +3,9 @@
 // walk into a place to enter its lesson. Proof that "swap to a more advanced pack"
 // gives a real game feel with ZERO changes to the curriculum core. Copy into
 // src/lesson/lesson.tsx to try it.
-import { CurriculumHost, type Curriculum } from "@/faraday/world";
-import { world3dRpgPack } from "@/faraday/three/world3d-rpg";
-import { Lesson, Prose, Quiz } from "@/faraday/blocks";
+import { CurriculumHost, type Curriculum } from "@faraday-academy/runtime/world";
+import { world3dRpgPack } from "@faraday-academy/three/physics";
+import { Lesson, Prose, Quiz } from "@faraday-academy/runtime/blocks";
 
 function Stop({ title, body }: { title: string; body: string }) {
   return (
