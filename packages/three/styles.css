@@ -1,0 +1,4 @@
+/* Scan the 3D block's own components so their utility classes (Label3D overlay
+   chips etc.) are emitted. Tailwind itself is imported once via the kit
+   stylesheet; this file only adds the content source for this package. */
+@source "./**/*.{ts,tsx}";

@@ -2,9 +2,9 @@
 // vendor the Faraday layer — it depends on the versioned `@faraday-academy/*`
 // packages and pins them exactly, so the kit updates centrally via
 // `faraday upgrade` instead of being copied + hash-locked into every lesson.
-// The starter template already imports the kit as `@faraday-academy/kit/*`; the only
-// generation-time work is injecting the package name/title and writing
-// provenance. No file copying into a protected tree, no integrity manifest.
+// The starter template already imports the kit as `@faraday-academy/kit/*`; the
+// generation-time work is injecting the package name/title, wiring opt-in addon
+// dependencies (3D/physics), and writing provenance. No integrity manifest.
 import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -15,9 +15,16 @@ import { sanitizePackageName, normalizeTitle } from "./pkg.mjs";
 const PACKAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const TITLE_PLACEHOLDER = "Faraday Lesson";
 
+// Exact pins for @faraday-academy/* addon packages (checked by `faraday doctor`).
+const THREE_PIN = "0.1.0";
+// @react-three/rapier is an ordinary external dep (not @faraday-academy/*), so a
+// caret range is fine — `faraday upgrade` only moves the @faraday-academy pins.
+const RAPIER_RANGE = "^2.1.0";
+
 function sourcePaths(root = PACKAGE_ROOT) {
   return {
     starter: path.join(root, "templates", "starter"),
+    addon3d: path.join(root, "templates", "addon-3d"),
   };
 }
 
@@ -33,21 +40,20 @@ async function replaceInFile(file, from, to) {
  * @param {string} opts.targetDir  absolute path to create the lesson in
  * @param {string} opts.name       raw user name (for package name + title)
  * @param {boolean} [opts.force]   allow a non-empty target
- * @param {boolean} [opts.threeD]  (addon — deferred to Phase 5)
- * @param {boolean} [opts.physics] (addon — deferred to Phase 5)
- * @param {boolean} [opts.tutor]   (addon — deferred to Phase 5)
+ * @param {boolean} [opts.threeD]  add the @faraday-academy/three block + a 3D demo
+ * @param {boolean} [opts.physics] like threeD, plus @react-three/rapier + a physics demo
+ * @param {boolean} [opts.tutor]   (addon — deferred to a later phase)
  * @param {string} [opts.templateRoot] override package root (tests)
  * @param {() => string} [opts.uuid]   injectable id generator (tests)
  */
 export async function generateLesson(opts) {
   const { targetDir, name, force = false, threeD = false, physics = false, tutor = false } = opts;
+  const use3d = threeD || physics; // physics implies 3D
 
-  // Addons vendored their block into the (now-removed) protected tree, so they
-  // need repackaging as `@faraday-academy/three` / `@faraday-academy/tutor` before they
-  // work in the centralized model. Fail loudly rather than emit a broken lesson.
-  if (threeD || physics || tutor) {
+  // The tutor addon (durable Nitro + Workflow server) is still being repackaged.
+  if (tutor) {
     const err = new Error(
-      "--3d/--physics/--tutor are being repackaged as @faraday-academy/* addon packages and are temporarily unavailable in the centralized kit. Scaffold a 2D lesson for now.",
+      "--tutor is being repackaged as the @faraday-academy/tutor package and is temporarily unavailable. Scaffold without it for now.",
     );
     err.exitCode = 2;
     throw err;
@@ -57,6 +63,7 @@ export async function generateLesson(opts) {
   const uuid = opts.uuid ?? (() => crypto.randomUUID());
 
   await assertDirectory(src.starter, "starter template");
+  if (use3d) await assertDirectory(src.addon3d, "3d addon template");
 
   if (!force && !(await isEffectivelyEmpty(targetDir))) {
     const err = new Error(`Target directory is not empty: ${targetDir} (use --overwrite)`);
@@ -67,7 +74,7 @@ export async function generateLesson(opts) {
   const packageName = sanitizePackageName(name);
   const title = normalizeTitle(name);
 
-  // 1. app shell -> project root (this already consumes @faraday-academy/kit)
+  // 1. app shell -> project root (already consumes @faraday-academy/kit)
   await copyDirectory(src.starter, targetDir);
 
   // 2. npm strips .gitignore from published packages, so the template ships it
@@ -79,22 +86,63 @@ export async function generateLesson(opts) {
     /* template may already use .gitignore in dev */
   }
 
-  // 3. inject package name
+  // 3. opt-in 3D: the three block is a DEPENDENCY (@faraday-academy/three), not
+  //    vendored. Here we only drop in the 3D demo lesson, the model asset, the
+  //    example lessons, and add the three stylesheet to the content scan.
+  if (use3d) {
+    await fs.copyFile(
+      path.join(src.addon3d, physics ? "physics-lesson.tsx" : "lesson.tsx"),
+      path.join(targetDir, "src", "lesson", "lesson.tsx"),
+    );
+    await fs.mkdir(path.join(targetDir, "public", "models"), { recursive: true });
+    await fs.copyFile(
+      path.join(src.addon3d, "assets", "fox.glb"),
+      path.join(targetDir, "public", "models", "fox.glb"),
+    );
+    await copyDirectory(path.join(src.addon3d, "examples"), path.join(targetDir, "docs", "examples"));
+    if (physics) {
+      await copyDirectory(path.join(src.addon3d, "physics-extra", "examples"), path.join(targetDir, "docs", "examples"));
+    }
+    // the three block uses Tailwind utilities (Label3D overlay chips); its
+    // stylesheet self-scans its own tsx, so pull it into the app content scan.
+    await replaceInFile(
+      path.join(targetDir, "src", "app.css"),
+      '@import "@faraday-academy/kit/styles.css";',
+      '@import "@faraday-academy/kit/styles.css";\n@import "@faraday-academy/three/styles.css";',
+    );
+  }
+
+  // 4. inject package name (+ addon deps)
   const pkgPath = path.join(targetDir, "package.json");
   const pkg = JSON.parse(await fs.readFile(pkgPath, "utf8"));
   pkg.name = packageName;
   pkg.private = true;
+  if (use3d) pkg.dependencies["@faraday-academy/three"] = THREE_PIN;
+  if (physics) pkg.dependencies["@react-three/rapier"] = RAPIER_RANGE;
+  if (use3d) {
+    pkg.dependencies = Object.fromEntries(
+      Object.entries(pkg.dependencies).sort(([a], [b]) => a.localeCompare(b)),
+    );
+  }
   await fs.writeFile(pkgPath, JSON.stringify(pkg, null, 2) + "\n");
 
-  // 4. inject display title into the HTML shell
+  // 5. inject display title into the HTML shell
   await replaceInFile(path.join(targetDir, "index.html"), TITLE_PLACEHOLDER, title);
 
-  // 5. provenance (VCS-tracked identity; records the kit line it was created with)
+  // 6. provenance (VCS-tracked identity; records the kit line + addons)
+  const addons = [use3d && (physics ? "physics" : "3d")].filter(Boolean);
   await fs.mkdir(path.join(targetDir, ".faraday"), { recursive: true });
   await fs.writeFile(
     path.join(targetDir, ".faraday", "provenance.json"),
     JSON.stringify(
-      { lessonId: uuid(), createdWith: "faraday@0.1.0", template: "starter@0.1.0", kit: "@faraday-academy/kit@0.1.0", name: packageName },
+      {
+        lessonId: uuid(),
+        createdWith: "faraday@0.1.0",
+        template: "starter@0.1.0",
+        kit: "@faraday-academy/kit@0.1.0",
+        addons,
+        name: packageName,
+      },
       null,
       2,
     ) + "\n",

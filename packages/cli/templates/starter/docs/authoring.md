@@ -259,14 +259,14 @@ your summary (it belongs in the kit, added centrally).
 
 ## 3D lessons (Three.js) — opt-in
 
-> **Temporarily unavailable.** `--3d`, `--physics`, and `--tutor` are being
-> repackaged as standalone `@faraday-academy/*` addon packages for the centralized
-> kit. `faraday new` currently scaffolds 2D lessons only; the sections below
-> describe the addon API as it will return. Import paths shown may change.
+> **Addon package.** The 3D block ships as its own pinned dependency,
+> `@faraday-academy/three` — `faraday new --3d` adds it (and `--physics` adds
+> `@react-three/rapier` too). (`--tutor` is still being repackaged as
+> `@faraday-academy/tutor` and is temporarily unavailable.)
 
 Scaffold with `faraday new <name> --3d` to include a Three.js (React Three Fiber)
 block + a solar-system demo. **Without `--3d`, three is never installed or bundled**
-— 2D lessons stay light. Import the 3D block from `@faraday-academy/kit/three`:
+— 2D lessons stay light. Import the 3D block from `@faraday-academy/three`:
 
 - `<Scene3D mood height? camera? controls? autoRotate?>` — a preconfigured R3F
   canvas (perspective camera, OrbitControls). Drop it into a `<Workbench>` center;
@@ -311,7 +311,7 @@ For photoreal/organic shapes (anatomy, animals, machinery) that aren't practical
 code-generate, use the `<Model>` block — it wraps `useGLTF` + animation playback:
 
 ```tsx
-import { Scene3D, Model } from "@faraday-academy/kit/three";
+import { Scene3D, Model } from "@faraday-academy/three";
 <Scene3D mood="lab"><Model url="/models/fox.glb" scale={0.05} animation="Walk" /></Scene3D>
 ```
 
@@ -363,7 +363,7 @@ swappable **pack** (ports-and-adapters) — change one prop, keep the content:
 
 - `linearPack` — a status list (doc-style, renders inline). `@faraday-academy/kit/world`
 - `map2dPack` — a 2D tactical node map (game screen). `@faraday-academy/kit/world`
-- `world3dPack` — a 3D open-world constellation (game screen, needs `--3d`). `@faraday-academy/kit/three`
+- `world3dPack` — a 3D open-world constellation (game screen, needs `--3d`). `@faraday-academy/three`
 
 Game packs are **immersive**: the host mounts the world as a full-viewport game
 screen (no page header, no reading column) and overlays a game HUD — a status
