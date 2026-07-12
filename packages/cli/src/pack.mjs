@@ -135,12 +135,11 @@ async function applyAppends(rules, lessonRoot) {
  * @param {string} [opts.packDir]      a pre-resolved pack directory (from resolvePack); bypasses name lookup
  * @param {string} [opts.source]       the original source string (recorded in provenance)
  * @param {string|null} [opts.variant] e.g. "physics"
- * @param {boolean} [opts.scaffold]    also stamp the pack's `scaffold` demo (new-lesson only)
  * @param {string} [opts.templateRoot] override CLI package root (tests)
  * @returns {Promise<{lessonRoot, packName, variant, addedDeps, installedRefs}>}
  */
 export async function installPack(packName, opts) {
-  const { fromDir, variant = null, scaffold = false, templateRoot, source = null } = opts;
+  const { fromDir, variant = null, templateRoot, source = null } = opts;
   let packDir, manifest;
   if (opts.packDir) {
     packDir = opts.packDir;
@@ -203,15 +202,6 @@ export async function installPack(packName, opts) {
   // 3. copy runtime files (examples, author-editable source, assets) + appends
   await applyCopies(rt.copy, packDir, lessonRoot);
   await applyAppends(rt.appends, lessonRoot);
-
-  // 3b. scaffold demo (new-lesson only, never on `pack add` into existing work)
-  if (scaffold && manifest.scaffold) {
-    await applyCopies(manifest.scaffold.copy, packDir, lessonRoot);
-    if (variant && manifest.scaffold.variants?.[variant]) {
-      await applyCopies(manifest.scaffold.variants[variant].copy, packDir, lessonRoot);
-    }
-    await applyAppends(manifest.scaffold.appends, lessonRoot);
-  }
 
   // 4. skill half -> .faraday/packs/<name>/ + pointer into AGENTS.md / authoring.md
   const installedRefs = [];
@@ -302,8 +292,8 @@ export function validateManifest(manifest) {
   for (const k of ["description", "quality"]) {
     if (manifest[k] != null && !isStr(manifest[k])) errs.push(`${k} must be a string`);
   }
-  if (manifest.aliasFlags != null && !(Array.isArray(manifest.aliasFlags) && manifest.aliasFlags.every(isStr)))
-    errs.push("aliasFlags must be a string[]");
+  if (manifest.default != null && typeof manifest.default !== "boolean")
+    errs.push("default must be a boolean");
 
   const rt = manifest.runtime;
   if (rt != null) {
@@ -325,14 +315,6 @@ export function validateManifest(manifest) {
         }
       }
     }
-  }
-
-  const sc = manifest.scaffold;
-  if (sc != null && isObj(sc)) {
-    checkCopyRules(sc.copy, "scaffold.copy", errs);
-    checkAppendRules(sc.appends, "scaffold.appends", errs);
-    if (sc.variants != null && isObj(sc.variants))
-      for (const [v, spec] of Object.entries(sc.variants)) checkCopyRules(spec?.copy, `scaffold.variants.${v}.copy`, errs);
   }
 
   const sk = manifest.skill;
@@ -611,4 +593,168 @@ export async function readPackSkill(packDir, manifest) {
 /** Names of official packs marked `"default": true` (auto-installed by `faraday new`). */
 export async function defaultPackNames(root = PACKAGE_ROOT) {
   return (await listPacks(root)).filter((p) => p.default === true).map((p) => p.name);
+}
+
+// ── Pack authoring: `faraday pack new` ──────────────────────────────────────
+// Stamp the uniform pack skeleton (pack.json + skill/pack.md + quality.md +
+// examples/) so an author fills in blanks instead of copying an existing pack by
+// hand. Mirrors `faraday new` for lessons. Three archetypes match how the runtime
+// half installs: "skill" (compose existing blocks, no deps), "copy" (ship an
+// author-editable component into the lesson), "runtime" (pin a published package).
+
+const PACK_KINDS = ["skill", "copy", "runtime"];
+const pascalCase = (s) => s.replace(/(^|-)([a-z0-9])/g, (_, __, c) => c.toUpperCase());
+
+function packManifestTemplate(name, kind) {
+  const m = {
+    name,
+    displayName: `TODO: ${name} — short human label`,
+    description: "TODO: one sentence — what this pack adds to a lesson, and when to use it.",
+    default: true,
+    runtime: {},
+    skill: {
+      reference: "skill/pack.md",
+      loadWhen: "TODO: the situation in which an agent should load this pack",
+    },
+    quality: "quality.md",
+  };
+  if (kind === "copy") {
+    m.runtime = {
+      copy: [
+        { from: `runtime/${name}`, to: `src/lesson/${name}` },
+        { from: "examples", to: "docs/examples" },
+      ],
+    };
+  } else if (kind === "runtime") {
+    m.runtime = {
+      dependencies: { "TODO-published-package": "^0.0.0" },
+      cssImports: [],
+      copy: [{ from: "examples", to: "docs/examples" }],
+    };
+  } else {
+    m.runtime = { copy: [{ from: "examples", to: "docs/examples" }] };
+  }
+  return m;
+}
+
+function packSkillTemplate(name) {
+  return `# Pack: \`${name}\` — <short title> (agent guide)
+
+Load this when **<the trigger>** — mirror the manifest's \`loadWhen\`. One or two
+sentences on what this pack gives a lesson.
+
+## When it fits (and when it doesn't)
+
+Say what this pack is *for* — and, just as important, when NOT to reach for it
+(the negative space). A capability used off-label fails the quality bar.
+
+## Why / pedagogy
+
+The evidence or design principle behind the capability: why this shape, not another.
+
+## Using it
+
+\`\`\`tsx
+// The minimal, correct way to use what this pack installs.
+\`\`\`
+
+- Call out the non-obvious rules (stable ids, required props, common gotchas).
+
+## Extending
+
+Where the author can go further — swap the algorithm, wire to the LMS recorder,
+theme it. Point at the author-editable files this pack copies (if any).
+
+## Quality gate
+
+See \`quality.md\`. Key rules: <the 2-3 things that make a use of this pack good>.
+`;
+}
+
+function packQualityTemplate(name) {
+  return `# Pack \`${name}\` — quality bar
+
+Additional acceptance rules for lessons that use the \`${name}\` pack. Each rule is
+pass/fail — an agent grades a generated lesson against them (the eval loop).
+
+- **<Rule one>.** What must be true, and why a violation is a fail.
+- **<Rule two>.** …
+- **Right tool.** This pack is chosen because <the outcome it serves> — not to do
+  something another pack or a plain block does better.
+`;
+}
+
+function packExampleTemplate(name) {
+  return `// Example lesson for the \`${name}\` pack — copy into src/lesson/lesson.tsx.
+// Keep it to ONE idea that shows the pack at its best; it doubles as an eval fixture.
+import { Lesson, Prose } from "@faraday-academy/runtime/blocks";
+
+export default function ${pascalCase(name)}Example() {
+  return (
+    <Lesson>
+      <Prose>
+        <h1>TODO: ${name} example</h1>
+        <p>Show the capability this pack adds, in the smallest complete lesson.</p>
+      </Prose>
+    </Lesson>
+  );
+}
+`;
+}
+
+function packComponentTemplate(name) {
+  const C = pascalCase(name);
+  return `// Author-editable component the \`${name}\` pack copies into src/lesson/${name}/.
+// Once installed this is YOURS to edit — it is copied, not a locked dependency.
+import type { ReactNode } from "react";
+
+export function ${C}({ children }: { children?: ReactNode }) {
+  return <div className="${name}">{children}</div>;
+}
+`;
+}
+
+/**
+ * Scaffold a new module-pack folder for a pack author.
+ * @param {string} name  kebab-case pack name
+ * @param {object} [opts]
+ * @param {string} [opts.cwd]
+ * @param {string} [opts.dir]        target directory (default ./<name>)
+ * @param {"skill"|"copy"|"runtime"} [opts.kind]  archetype (default "skill")
+ * @param {boolean} [opts.overwrite]
+ * @returns {Promise<{packDir: string, name: string, kind: string, files: string[]}>}
+ */
+export async function scaffoldPack(name, opts = {}) {
+  const cwd = opts.cwd ?? process.cwd();
+  const kind = opts.kind ?? "skill";
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(name ?? "")) {
+    const e = new Error(`pack name must be kebab-case ([a-z0-9-]), got "${name}"`);
+    e.exitCode = 2;
+    throw e;
+  }
+  if (!PACK_KINDS.includes(kind)) {
+    const e = new Error(`unknown --kind "${kind}" (expected: ${PACK_KINDS.join(", ")})`);
+    e.exitCode = 2;
+    throw e;
+  }
+  const packDir = opts.dir ? path.resolve(cwd, opts.dir) : path.resolve(cwd, name);
+  const existing = await fs.readdir(packDir).catch(() => null);
+  if (existing && existing.length && !opts.overwrite) {
+    const e = new Error(`target ${packDir} is not empty (use --overwrite)`);
+    e.exitCode = 2;
+    throw e;
+  }
+  const files = [];
+  const write = async (rel, content) => {
+    const abs = path.join(packDir, rel);
+    await fs.mkdir(path.dirname(abs), { recursive: true });
+    await fs.writeFile(abs, content);
+    files.push(rel);
+  };
+  await write("pack.json", JSON.stringify(packManifestTemplate(name, kind), null, 2) + "\n");
+  await write("skill/pack.md", packSkillTemplate(name));
+  await write("quality.md", packQualityTemplate(name));
+  await write(`examples/${name}.tsx`, packExampleTemplate(name));
+  if (kind === "copy") await write(`runtime/${name}/index.tsx`, packComponentTemplate(name));
+  return { packDir, name, kind, files };
 }
