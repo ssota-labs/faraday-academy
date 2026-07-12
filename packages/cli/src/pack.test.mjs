@@ -7,7 +7,7 @@ import path from "node:path";
 import os from "node:os";
 import { generateLesson } from "./generate.mjs";
 import { runFaradayCli } from "./cli.mjs";
-import { listPacks, installPack, removePack, resolvePack, validateManifest, readManifestAt, readPackSkill, defaultPackNames } from "./pack.mjs";
+import { listPacks, installPack, removePack, resolvePack, validateManifest, readManifestAt, readPackSkill, defaultPackNames, scaffoldPack } from "./pack.mjs";
 
 /** Run the CLI capturing stdout/stderr (throws on non-zero). setExitCode is
  *  captured locally so a rejection test doesn't poison the runner's exit code. */
@@ -356,4 +356,44 @@ test("installPack from an external (local) source records {name, source} in prov
   const entry = prov.packs.find((p) => typeof p === "object" && p.name === "vocab-pack");
   assert.ok(entry, "external pack recorded as an object");
   assert.equal(entry.source, packDir);
+});
+
+test("pack new scaffolds each archetype with a valid, default manifest", async () => {
+  for (const kind of ["skill", "copy", "runtime"]) {
+    const base = await tmp();
+    const r = await scaffoldPack("demo-pack", { cwd: base, kind });
+    assert.equal(r.kind, kind);
+    for (const f of ["pack.json", "skill/pack.md", "quality.md", "examples/demo-pack.tsx"]) {
+      assert.ok(await exists(path.join(r.packDir, f)), `missing ${f}`);
+    }
+    assert.equal(
+      await exists(path.join(r.packDir, "runtime/demo-pack/index.tsx")),
+      kind === "copy",
+      "copy archetype ships an author-editable component; others don't",
+    );
+    const manifest = await readManifestAt(r.packDir);
+    assert.deepEqual(validateManifest(manifest), [], `${kind} manifest invalid`);
+    assert.equal(manifest.default, true, "scaffolded packs are default (batteries-included)");
+    assert.ok(manifest.skill?.reference && manifest.quality, "wires skill + quality");
+  }
+});
+
+test("pack new rejects a bad name, an unknown kind, and a non-empty target", async () => {
+  const base = await tmp();
+  await assert.rejects(() => scaffoldPack("Bad Name", { cwd: base }), /kebab-case/);
+  await assert.rejects(() => scaffoldPack("ok", { cwd: base, kind: "bogus" }), /unknown --kind/);
+  await scaffoldPack("taken", { cwd: base });
+  await assert.rejects(() => scaffoldPack("taken", { cwd: base }), /not empty/);
+  await scaffoldPack("taken", { cwd: base, overwrite: true }); // --overwrite allows it
+});
+
+test("a scaffolded pack round-trips: pack new -> pack add into a lesson", async () => {
+  const base = await tmp();
+  const { packDir } = await scaffoldPack("round-trip", { cwd: base, kind: "copy" });
+  const lesson = await scaffold("Round Trip Host");
+  await installPack(null, { fromDir: lesson, packDir, source: packDir });
+  assert.ok(await exists(path.join(lesson, ".faraday/packs/round-trip/pack.md")), "skill half installed");
+  assert.ok(await exists(path.join(lesson, "src/lesson/round-trip/index.tsx")), "runtime component copied");
+  const prov = JSON.parse(await read(lesson, ".faraday/provenance.json"));
+  assert.ok(prov.packs.some((p) => (typeof p === "string" ? p : p.name) === "round-trip"), "recorded in provenance");
 });
