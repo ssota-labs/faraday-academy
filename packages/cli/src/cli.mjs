@@ -12,7 +12,7 @@ import { listPacks, installPack, removePack, resolvePack, readManifestAt, valida
 const HELP = `faraday — scaffold AI-authored interactive lessons (shadcn-based)
 
 Usage:
-  faraday new <name> [--3d | --physics] [--tutor] [--no-defaults] [--at <dir>] [--overwrite] [--skip-install] [--json]
+  faraday new <name> [--no-defaults] [--at <dir>] [--overwrite] [--skip-install] [--json]
   faraday check [--dir <lesson>]        verify the lesson layout + runtime pin
   faraday doctor [--dir <lesson>]       deep check (layout + pin + installed lockfile)
   faraday upgrade [--to <ver>] [--dir <lesson>]
@@ -40,12 +40,10 @@ Usage:
 The generated lesson depends on the versioned @faraday-academy/runtime package
 (pinned exactly) instead of vendoring it. Author your lesson in src/lesson/.
 
-  --3d        add the @faraday-academy/three block (R3F/three.js) + a 3D demo.
-              Omit it for 2D lessons — three is never installed or bundled without it.
-  --physics   like --3d, plus @react-three/rapier + a gravity/collision demo.
-  --tutor     add the @faraday-academy/tutor <Tutor> widget + a durable AI server
-              (Vite + Nitro + Workflow). The server (api/ + workflows/) is
-              author-editable. Needs AI_GATEWAY_API_KEY in .env.local locally.
+Capabilities (3D, physics, the AI tutor, flashcards, exams, …) are **module packs**,
+not flags: scaffold with \`faraday new\`, then \`faraday pack add <name>\` for what the
+lesson needs (e.g. \`pack add three --physics\`, \`pack add tutor\`). \`pack list\` shows
+them all. \`--no-defaults\` skips the auto-installed pedagogy/audience packs.
 
 Exit codes: 0 ok · 1 check failed · 2 usage error · 3 doctor/structure failed · 4 environment error`;
 
@@ -97,16 +95,13 @@ export async function runFaradayCli(argv, rawContext = {}) {
 }
 
 function parseNewArgs(argv) {
-  const opts = { name: undefined, at: undefined, overwrite: false, skipInstall: false, json: false, threeD: false, physics: false, tutor: false, noDefaults: false };
+  const opts = { name: undefined, at: undefined, overwrite: false, skipInstall: false, json: false, noDefaults: false };
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === "--at") opts.at = argv[++i];
     else if (arg === "--overwrite") opts.overwrite = true;
     else if (arg === "--skip-install") opts.skipInstall = true;
     else if (arg === "--json") opts.json = true;
-    else if (arg === "--3d") opts.threeD = true;
-    else if (arg === "--physics") opts.physics = true;
-    else if (arg === "--tutor") opts.tutor = true;
     else if (arg === "--no-defaults") opts.noDefaults = true;
     else if (arg.startsWith("-")) { const e = new Error(`Unknown flag: ${arg}`); e.exitCode = 2; throw e; }
     else if (opts.name === undefined) opts.name = arg;
@@ -128,9 +123,6 @@ async function runNew(argv, context) {
     targetDir,
     name: opts.name,
     force: opts.overwrite,
-    threeD: opts.threeD,
-    physics: opts.physics,
-    tutor: opts.tutor,
     noDefaults: opts.noDefaults,
     uuid: context.uuid,
   });

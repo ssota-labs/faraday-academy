@@ -59,57 +59,6 @@ test("generateLesson produces the expected tree + injections", async () => {
   await fs.rm(base, { recursive: true, force: true });
 });
 
-test("--tutor pins the widget + drops the author-editable server (addons=tutor)", async () => {
-  const base = await tmp();
-  const dir = path.join(base, "tutored");
-  await generateLesson({ targetDir: dir, name: "tutored", tutor: true });
-
-  const pkg = JSON.parse(await read(dir, "package.json"));
-  assert.equal(pkg.dependencies["@faraday-academy/tutor"], "0.1.0", "widget pinned");
-  for (const dep of ["ai", "@ai-sdk/workflow", "workflow", "nitro", "zod"]) {
-    assert.ok(pkg.dependencies[dep], `server dep ${dep} missing`);
-  }
-  assert.ok(await exists(path.join(dir, "api/chat.post.ts")), "nitro route copied");
-  assert.ok(await exists(path.join(dir, "workflows/tutor-agent.ts")), "workflow agent copied");
-  assert.ok(await exists(path.join(dir, "env.example")), "env template copied");
-  assert.match(await read(dir, "vite.config.ts"), /nitro|workflow/);
-  assert.match(await read(dir, "pnpm-workspace.yaml"), /nodeLinker:\s*hoisted/);
-  assert.match(await read(dir, "src/app.css"), /@faraday-academy\/tutor\/styles\.css/);
-  assert.deepEqual(JSON.parse(await read(dir, ".faraday/provenance.json")).addons, ["tutor"]);
-  await fs.rm(base, { recursive: true, force: true });
-});
-
-test("--3d scaffolds a 3D lesson: pins @faraday-academy/three + R3F, swaps demo, adds asset + style scan", async () => {
-  const base = await tmp();
-  const dir = path.join(base, "space");
-  await generateLesson({ targetDir: dir, name: "space", threeD: true });
-
-  const pkg = JSON.parse(await read(dir, "package.json"));
-  assert.equal(pkg.dependencies["@faraday-academy/three"], "0.1.0");
-  assert.ok(pkg.dependencies["@react-three/fiber"], "fiber must be a direct dep");
-  assert.ok(pkg.dependencies["three"], "three must be a direct dep");
-  assert.ok(pkg.devDependencies["@types/three"], "three types must be a dev dep");
-  assert.ok(!("@react-three/rapier" in pkg.dependencies), "no rapier without --physics");
-  assert.match(await read(dir, "src/lesson/lesson.tsx"), /@faraday-academy\/three/);
-  assert.ok(await exists(path.join(dir, "public/models/fox.glb")), "model asset copied");
-  assert.match(await read(dir, "src/app.css"), /@faraday-academy\/three\/styles\.css/);
-  assert.deepEqual(JSON.parse(await read(dir, ".faraday/provenance.json")).addons, ["3d"]);
-  await fs.rm(base, { recursive: true, force: true });
-});
-
-test("--physics adds rapier + the physics demo (addons=physics)", async () => {
-  const base = await tmp();
-  const dir = path.join(base, "phys");
-  await generateLesson({ targetDir: dir, name: "phys", physics: true });
-
-  const pkg = JSON.parse(await read(dir, "package.json"));
-  assert.equal(pkg.dependencies["@faraday-academy/three"], "0.1.0");
-  assert.equal(pkg.dependencies["@react-three/rapier"], "^2.1.0");
-  assert.match(await read(dir, "src/lesson/lesson.tsx"), /rapier/);
-  assert.deepEqual(JSON.parse(await read(dir, ".faraday/provenance.json")).addons, ["physics"]);
-  await fs.rm(base, { recursive: true, force: true });
-});
-
 test("faraday new --json --skip-install reports structured output", async () => {
   const base = await tmp();
   let out = "";
