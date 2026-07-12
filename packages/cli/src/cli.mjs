@@ -291,6 +291,7 @@ async function runPackAdd(argv, context) {
       ok: true, command: "pack add", pack: result.packName, source: result.source,
       variant: result.variant, dir: result.lessonRoot,
       addedDeps: result.addedDeps, installedRefs: result.installedRefs,
+      installedRequires: result.installedRequires ?? [],
       nextSteps: result.addedDeps.length ? ["pnpm install"] : [],
     }, null, 2) + "\n");
     return;
@@ -299,6 +300,9 @@ async function runPackAdd(argv, context) {
   const from = result.source && result.source !== result.packName ? ` (from ${result.source})` : "";
   context.stdout(
     `\n  Added pack ${label}${from} to ${rel}/\n\n` +
+    (result.installedRequires?.length
+      ? `  Also installed required packs: ${result.installedRequires.join(", ")}\n`
+      : "") +
     (result.addedDeps.length
       ? `  Pinned: ${result.addedDeps.join(", ")}\n  Run \`pnpm install\` to fetch them.\n`
       : `  Dependencies already present.\n`) +

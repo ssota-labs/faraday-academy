@@ -80,6 +80,11 @@ The full contract is `packages/official-packs/pack.schema.json`. The fields:
 }
 ```
 
+- **`requires`** — other packs this one builds on, installed first. Each entry is a
+  pack source (official name · `./path` · `owner/repo` · `npm:<spec>`). Use it when a
+  pack composes another instead of re-declaring its deps — e.g. a village-map game
+  curriculum pack `requires: ["three"]` to stand on the 3D engine. Cycle-guarded and
+  idempotent; the dependency's runtime + skill + provenance all come along.
 - **`variants`** — optional bundles selected with `faraday pack add <name> --<variant>`
   (e.g. `--physics`). They are *not* in the base install.
 - **`copy`** rules take a file or a whole directory; missing sources are skipped.

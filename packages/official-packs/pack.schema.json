@@ -18,6 +18,11 @@
       "type": "boolean",
       "description": "When true, `faraday new` auto-installs this pack (batteries-included). All official packs are default; `--no-defaults` skips them."
     },
+    "requires": {
+      "type": "array",
+      "description": "Other packs this pack depends on, installed first (a pack building on an engine/base pack). Each entry is a pack source: official name, ./path, owner/repo, or npm:<spec>.",
+      "items": { "type": "string" }
+    },
     "runtime": {
       "type": "object",
       "description": "The runtime half — merged/copied into the lesson's real project tree.",

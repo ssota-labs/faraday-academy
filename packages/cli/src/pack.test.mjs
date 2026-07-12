@@ -491,3 +491,48 @@ test("CLI: faraday pack new then add round-trips through the CLI", async () => {
   assert.equal(addRes.code, 0, `pack add failed: ${addRes.err}`);
   assert.ok(await exists(path.join(lesson, ".faraday/packs/cli-cap/SKILL.md")), "folder skill installed via CLI");
 });
+
+test("installPack installs a pack's required packs first (composition)", async () => {
+  const base = await tmp();
+  const { packDir } = await scaffoldPack("needs-srs", { cwd: base });
+  const m = JSON.parse(await read(packDir, "pack.json"));
+  m.requires = ["srs"]; // depend on the official srs pack
+  await fs.writeFile(path.join(packDir, "pack.json"), JSON.stringify(m, null, 2));
+
+  // a minimal lesson WITHOUT default packs, so srs is genuinely not present yet
+  const lessonBase = await tmp();
+  const lesson = path.join(lessonBase, "l");
+  await generateLesson({ targetDir: lesson, name: "Compose Host", noDefaults: true, uuid: () => "id" });
+  assert.equal(await exists(path.join(lesson, "src/lesson/srs/Flashcards.tsx")), false, "srs not pre-installed");
+
+  const r = await installPack(null, { fromDir: lesson, packDir, source: packDir });
+  assert.deepEqual(r.installedRequires, ["srs"], "required pack installed first");
+  assert.ok(await exists(path.join(lesson, "src/lesson/srs/Flashcards.tsx")), "dependency runtime pulled in");
+  assert.ok(await exists(path.join(lesson, ".faraday/packs/srs/pack.md")), "dependency skill pulled in");
+  const prov = JSON.parse(await read(lesson, ".faraday/provenance.json"));
+  assert.ok(prov.packs.includes("srs"), "dependency recorded in provenance");
+});
+
+test("installPack requires are cycle-guarded (mutually-requiring packs terminate)", async () => {
+  const base = await tmp();
+  const a = await scaffoldPack("cyc-a", { cwd: base, dir: path.join(base, "cyc-a") });
+  const b = await scaffoldPack("cyc-b", { cwd: base, dir: path.join(base, "cyc-b") });
+  const setReq = async (dir, req) => {
+    const p = path.join(dir, "pack.json");
+    const mm = JSON.parse(await fs.readFile(p, "utf8"));
+    mm.requires = [req];
+    await fs.writeFile(p, JSON.stringify(mm, null, 2));
+  };
+  await setReq(a.packDir, b.packDir); // a → b
+  await setReq(b.packDir, a.packDir); // b → a  (cycle)
+
+  const lessonBase = await tmp();
+  const lesson = path.join(lessonBase, "l");
+  await generateLesson({ targetDir: lesson, name: "Cycle Host", noDefaults: true, uuid: () => "id" });
+
+  // must terminate and install both exactly once
+  const r = await installPack(null, { fromDir: lesson, packDir: a.packDir, source: a.packDir });
+  assert.deepEqual(r.installedRequires, ["cyc-b"], "a installs b once");
+  assert.ok(await exists(path.join(lesson, ".faraday/packs/cyc-a/SKILL.md")), "a installed");
+  assert.ok(await exists(path.join(lesson, ".faraday/packs/cyc-b/SKILL.md")), "b installed");
+});

@@ -136,7 +136,8 @@ async function applyAppends(rules, lessonRoot) {
  * @param {string} [opts.source]       the original source string (recorded in provenance)
  * @param {string|null} [opts.variant] e.g. "physics"
  * @param {string} [opts.templateRoot] override CLI package root (tests)
- * @returns {Promise<{lessonRoot, packName, variant, addedDeps, installedRefs}>}
+ * @param {Set<string>} [opts._seen] internal — packs already installed this run (cycle guard)
+ * @returns {Promise<{lessonRoot, packName, variant, addedDeps, installedRefs, installedRequires}>}
  */
 export async function installPack(packName, opts) {
   const { fromDir, variant = null, templateRoot, source = null } = opts;
@@ -157,6 +158,20 @@ export async function installPack(packName, opts) {
     );
     err.exitCode = 2;
     throw err;
+  }
+
+  // 0. dependency packs — install what this pack `requires` first, so a pack can
+  //    build ON another (a game-curriculum pack on the `three` engine pack) without
+  //    re-declaring its deps. Cycle-guarded via _seen; installPack is idempotent so
+  //    an already-present dependency is a no-op.
+  const seen = opts._seen ?? new Set();
+  seen.add(name);
+  const installedRequires = [];
+  for (const req of manifest.requires ?? []) {
+    const r = await resolvePack(req, {});
+    if (seen.has(r.name)) continue; // cycle, or already installed this run
+    await installPack(null, { fromDir, packDir: r.packDir, source: r.source, templateRoot, _seen: seen });
+    installedRequires.push(r.name);
   }
 
   if (variant && !manifest.runtime?.variants?.[variant]) {
@@ -255,7 +270,7 @@ export async function installPack(packName, opts) {
     /* older lesson without provenance — skip */
   }
 
-  return { lessonRoot, packName: name, variant, addedDeps, installedRefs, source };
+  return { lessonRoot, packName: name, variant, addedDeps, installedRefs, installedRequires, source };
 }
 
 // ---------------------------------------------------------------------------
@@ -294,6 +309,8 @@ export function validateManifest(manifest) {
   }
   if (manifest.default != null && typeof manifest.default !== "boolean")
     errs.push("default must be a boolean");
+  if (manifest.requires != null && !(Array.isArray(manifest.requires) && manifest.requires.every(isStr)))
+    errs.push("requires must be a string[]");
 
   const rt = manifest.runtime;
   if (rt != null) {
@@ -403,6 +420,16 @@ export async function validatePackDir(packDir) {
   }
   await scan("quality.md");
   if (todoFiles.length) warnings.push(`unfilled scaffold TODOs in: ${[...new Set(todoFiles)].join(", ")}`);
+
+  // 5. required packs: an official-name dependency should resolve to a known pack
+  if (Array.isArray(manifest.requires) && manifest.requires.length) {
+    const official = new Set((await listPacks()).map((p) => p.name));
+    for (const req of manifest.requires) {
+      if (/^[a-z0-9][a-z0-9-]*$/.test(req) && !official.has(req)) {
+        warnings.push(`requires "${req}" is not a known official pack (typo? or an external source)`);
+      }
+    }
+  }
 
   return { errors, warnings };
 }
