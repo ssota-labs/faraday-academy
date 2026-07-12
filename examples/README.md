@@ -4,22 +4,46 @@ Live demos built **with** the Faraday CLI — same loop an early-adopter creator
 runs (scaffold → author `src/lesson/**` → `pnpm check` → deploy). Each folder is
 a self-contained Vite lesson app (its own `package.json` + lockfile).
 
-| Example | Concept | Flags | Vercel root |
-|---|---|---|---|
-| [`voyage-log/`](voyage-log/) | **C-B 항해 일지** — relativity / gravity / time as a space voyage curriculum | `--3d` | `examples/voyage-log` |
+| Example | Concept | Flags | Vercel root | Live |
+|---|---|---|---|---|
+| [`compound-interest/`](compound-interest/) | **S1 복리의 폭주** — sliders → compound growth chart | 2D | `examples/compound-interest` | [Vercel setup](../docs/VERCEL-DEMOS.md) |
+| [`voyage-log/`](voyage-log/) | **C-B 항해 일지** — relativity / gravity / time as a space voyage curriculum | `--3d` | `examples/voyage-log` | [Vercel setup](../docs/VERCEL-DEMOS.md) |
+
+## Install Faraday (creator CTA)
+
+```text
+/plugin marketplace add ssota-labs/faraday-academy
+/plugin install faraday@faraday
+
+Then say:
+  “Turn this topic into an interactive Faraday lesson: <topic>.
+   Scaffold, author, run pnpm check and pnpm dev, then give me the URL.”
+
+Repo: https://github.com/ssota-labs/faraday-academy
+```
 
 ## Deploy on Vercel (this monorepo)
 
-1. Import `ssota-labs/faraday-edu`.
-2. Set **Root Directory** to the example (e.g. `examples/voyage-log`).
-3. Framework: Vite. Build: `pnpm build`. Output: `dist`.
-4. Each example ships a `vercel.json` with those defaults.
+Full walkthrough: [docs/VERCEL-DEMOS.md](../docs/VERCEL-DEMOS.md).
 
-Local:
+1. Import `ssota-labs/faraday-academy` **twice** (one project per demo).
+2. Set **Root Directory** to the example (`examples/compound-interest` or `examples/voyage-log`).
+3. Each folder’s `vercel.json` already runs `cd ../.. && pnpm install` so workspace
+   `@faraday-academy/*` links work **before** packages are on npm.
+4. After npm publish you can simplify install to plain `pnpm install` if you want.
+
+Local (from repo root, after `pnpm install`):
 
 ```bash
-cd examples/voyage-log
-pnpm install   # if needed
+pnpm --filter compound-interest check && pnpm --filter compound-interest build
+pnpm --filter voyage-log check && pnpm --filter voyage-log build
+```
+
+Or inside an example:
+
+```bash
+cd examples/compound-interest
+pnpm install   # links workspace @faraday-academy/* when installed from monorepo root
 pnpm check && pnpm build && pnpm preview
 ```
 

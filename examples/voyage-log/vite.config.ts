@@ -6,6 +6,7 @@ import { defineConfig } from "vite";
 // "@" -> ./src for local lesson imports ("@/lesson/…"); the runtime + 3D block
 // come from the pinned @faraday-academy/* deps. Tailwind v4 runs via its Vite plugin.
 export default defineConfig({
+  base: "./",
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
