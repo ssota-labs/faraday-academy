@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Faraday Academy 3D addon — R3F/three.js block (Scene3D, Body, Model, world packs) that 3D lessons pin. R3F is a peer the lesson provides; optional @react-three/rapier unlocks the physics pack.",
   "type": "module",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE.md",
   "sideEffects": ["*.css"],
   "exports": {
     ".": "./index.ts",
@@ -21,11 +21,11 @@
     "styles.css",
     "world3d.tsx",
     "vite-env.d.ts",
-    "LICENSE"
+    "LICENSE.md"
   ],
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
-    "prepack": "cp ../../LICENSE ./LICENSE 2>/dev/null || true"
+    "prepack": "cp ../../LICENSE.md ./LICENSE.md 2>/dev/null || true"
   },
   "publishConfig": {
     "access": "public"

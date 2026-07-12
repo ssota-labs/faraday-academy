@@ -6,7 +6,7 @@
   "author": { "name": "Faraday", "url": "https://github.com/ssota-labs/faraday-academy" },
   "homepage": "https://github.com/ssota-labs/faraday-academy",
   "repository": "https://github.com/ssota-labs/faraday-academy",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE.md",
   "keywords": ["education", "interactive-textbook", "scaffolder", "ai-tutor", "vite", "react", "three.js"],
   "skills": "./skills/",
   "commands": "./commands/",
