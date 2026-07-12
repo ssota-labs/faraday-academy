@@ -57,8 +57,29 @@ for (const name of ORDER) {
   const pkg = JSON.parse(readFileSync(path.join(pkgDir, "package.json"), "utf8"));
   console.log(`\n── ${pkg.name}@${pkg.version}${dry ? " (dry-run)" : ""} ──`);
 
-  const pack = run("npm", ["pack", "--dry-run"], { cwd: pkgDir });
-  if (pack !== 0) process.exit(1);
+  // fair-code: the license MUST ship in every tarball. `npm pack` runs the
+  // package's prepack (which copies ../../LICENSE.md in) then lists the contents;
+  // verify LICENSE.md is there before publishing, so we never publish without terms.
+  const packRes = spawnSync("npm", ["pack", "--dry-run", "--json"], { cwd: pkgDir, encoding: "utf8", env: process.env });
+  if (packRes.status !== 0) {
+    console.error(packRes.stderr || packRes.stdout);
+    process.exit(1);
+  }
+  let tarFiles = [];
+  try {
+    tarFiles = (JSON.parse(packRes.stdout)[0]?.files ?? []).map((f) => f.path);
+  } catch {
+    console.error(`could not parse \`npm pack --dry-run --json\` for ${pkg.name}`);
+    process.exit(1);
+  }
+  if (!tarFiles.some((p) => p === "LICENSE.md" || p.endsWith("/LICENSE.md"))) {
+    console.error(
+      `✗ ${pkg.name}: LICENSE.md not in the tarball — the fair-code license must ship.\n` +
+        `  Check the package's prepack (copies ../../LICENSE.md) and its \`files\` list.`,
+    );
+    process.exit(1);
+  }
+  console.log(`  ✓ LICENSE.md ships (${tarFiles.length} files)`);
 
   if (dry) continue;
 
