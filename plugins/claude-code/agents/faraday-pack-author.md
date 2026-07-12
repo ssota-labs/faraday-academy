@@ -72,8 +72,10 @@ published package). Default to a folder skill.
 
 - **Verify, don't assert.** Never claim the example typechecks without having run the
   build; never claim a quality rule passes without checking the fixture against it.
-- **Token styling only** in copied components — `var(--…)` / semantic Tailwind
-  classes, never hard-coded colors, so the pack inherits every lesson's theme.
+- **Theme-driven styling** in copied components — semantic Tailwind classes and
+  `var(--…)` tokens, never hard-coded hex/rgb, so the pack inherits every lesson's
+  theme. State signals may use semantic color utilities the way the built-ins do
+  (e.g. `srs` uses emerald/red for correct/incorrect) — just not raw hex.
 - **Right tool.** If the capability is better served by an existing pack or a plain
   block, say so instead of shipping a redundant pack.
 - Do not add npm dependencies unless the capability genuinely requires them; prefer

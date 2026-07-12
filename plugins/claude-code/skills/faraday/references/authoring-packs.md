@@ -130,10 +130,10 @@ example that imports a path the pack doesn't install) is installing into a real
 lesson and building:
 
 ```bash
-faraday pack validate <name|source>         # manifest + files-exist + no leftover TODOs
-faraday new probe --skip-install --at /tmp/probe
-faraday pack add <source> --dir /tmp/probe  # install both halves
-cd /tmp/probe && pnpm install && pnpm check  # layout + pins + the example TYPECHECKS
+faraday pack validate <name|source>              # manifest + files-exist + no leftover TODOs
+faraday new probe --skip-install --at /tmp/faraday-probe
+faraday pack add <source> --dir /tmp/faraday-probe   # install both halves
+cd /tmp/faraday-probe && pnpm install && pnpm check  # layout + pins + the example TYPECHECKS
 ```
 
 Do not declare a pack done on `validate` alone — a pack that validates green can
