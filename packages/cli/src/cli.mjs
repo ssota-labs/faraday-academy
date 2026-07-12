@@ -7,6 +7,7 @@ import spawn from "node:child_process";
 import { generateLesson } from "./generate.mjs";
 import { sanitizePackageName } from "./pkg.mjs";
 import { findLessonRoot, collectFindings, managedDeps } from "./doctor.mjs";
+import { listPacks, installPack } from "./pack.mjs";
 
 const HELP = `faraday — scaffold AI-authored interactive lessons (shadcn-based)
 
@@ -18,6 +19,10 @@ Usage:
                                         move the @faraday-academy/* pins (the only
                                         supported way): pin-bump → install →
                                         doctor, and roll back if doctor fails
+  faraday pack list                     list available module packs
+  faraday pack add <name> [--physics] [--dir <lesson>]
+                                        install a pack into an existing lesson —
+                                        runtime deps + skill guide, both at once
   faraday help
 
 The generated lesson depends on the versioned @faraday-academy/runtime package
@@ -67,6 +72,7 @@ export async function runFaradayCli(argv, rawContext = {}) {
     if (command === "check") return await runCheck(rest, context);
     if (command === "doctor") return await runDoctor(rest, context);
     if (command === "upgrade") return await runUpgrade(rest, context);
+    if (command === "pack") return await runPack(rest, context);
     const err = new Error(`Unknown command: ${command}`);
     err.exitCode = 2;
     throw err;
@@ -178,6 +184,64 @@ async function runCheck(argv, context) {
   const e = new Error(`${problems.length} check finding(s)`);
   e.exitCode = 1;
   throw e;
+}
+
+async function runPack(argv, context) {
+  const [sub, ...rest] = argv;
+  if (sub === "list") return await runPackList(rest, context);
+  if (sub === "add") return await runPackAdd(rest, context);
+  const e = new Error(`Unknown pack subcommand: ${sub ?? "(none)"} (try: list, add)`);
+  e.exitCode = 2;
+  throw e;
+}
+
+async function runPackList(argv, context) {
+  if (argv.length) { const e = new Error(`Unexpected argument: ${argv[0]}`); e.exitCode = 2; throw e; }
+  const packs = await listPacks();
+  if (packs.length === 0) {
+    context.stdout("No packs available.\n");
+    return;
+  }
+  context.stdout("Available packs:\n");
+  for (const p of packs) {
+    const variants = Object.keys(p.runtime?.variants ?? {});
+    const suffix = variants.length ? ` (variants: ${variants.join(", ")})` : "";
+    context.stdout(`  ${p.name} — ${p.displayName ?? ""}${suffix}\n`);
+  }
+}
+
+function parsePackAddArgs(argv) {
+  const opts = { name: undefined, dir: undefined, variant: null };
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    if (arg === "--dir") opts.dir = argv[++i];
+    else if (arg === "--physics") opts.variant = "physics";
+    else if (arg.startsWith("-")) { const e = new Error(`Unknown flag: ${arg}`); e.exitCode = 2; throw e; }
+    else if (opts.name === undefined) opts.name = arg;
+    else { const e = new Error(`Unexpected argument: ${arg}`); e.exitCode = 2; throw e; }
+  }
+  if (!opts.name) { const e = new Error("pack add requires a <name>"); e.exitCode = 2; throw e; }
+  if (opts.dir !== undefined && !opts.dir) { const e = new Error("--dir requires a value"); e.exitCode = 2; throw e; }
+  return opts;
+}
+
+async function runPackAdd(argv, context) {
+  const opts = parsePackAddArgs(argv);
+  const fromDir = opts.dir ? path.resolve(context.cwd, opts.dir) : context.cwd;
+  const result = await installPack(opts.name, { fromDir, variant: opts.variant });
+
+  const rel = path.relative(context.cwd, result.lessonRoot) || ".";
+  const label = result.variant ? `${result.packName} (--${result.variant})` : result.packName;
+  context.stdout(
+    `\n  Added pack ${label} to ${rel}/\n\n` +
+    (result.addedDeps.length
+      ? `  Pinned: ${result.addedDeps.join(", ")}\n  Run \`pnpm install\` to fetch them.\n`
+      : `  Dependencies already present.\n`) +
+    (result.installedRefs.length
+      ? `  Skill guide: ${result.installedRefs.join(", ")} (pointer added to AGENTS.md).\n`
+      : "") +
+    "\n",
+  );
 }
 
 async function runDoctor(argv, context) {

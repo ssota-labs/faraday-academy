@@ -1,5 +1,11 @@
 # Pedagogy — the evidence-based default
 
+> This is the compact always-available default. The **folder-ized, extensible**
+> version — one file per move, plus a named-methodology table (CRA/5E/Peer
+> Instruction/Mayer/Merrill) — is the `lecture-design` pack
+> (`faraday pack add lecture-design`). Promote a lesson's pedagogy knowledge into
+> it when you want the deep library installed alongside the lesson.
+
 **The creator's own methodology always wins.** If they teach with a method (their
 sequence, their assessment style, a school framework), follow it — you learned it in
 [discovery.md](discovery.md). This document is the **default** for creators who
