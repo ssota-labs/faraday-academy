@@ -14,7 +14,7 @@
 | A2 — human Claude/Codex install smoke | **Human** | Run `/plugin marketplace add ssota-labs/faraday-academy` in a clean session |
 | B — S1 `examples/compound-interest` | Done | Lesson authored + `vercel.json` |
 | B — C★ `examples/voyage-log` | Done | Prior art; CTA added |
-| B — live demo URLs | **Ready / needs Pages toggle** | `gh-pages` branch deployed with both demos. Enable Pages in repo settings. |
+| B — live demo URLs | **Vercel (preferred)** | See [VERCEL-DEMOS.md](VERCEL-DEMOS.md). `gh-pages` branch is a fallback only. |
 | A3 — local cold E2E (`scripts/stage1-cold-e2e.mjs`) | Done | CLI tests + scaffold 2D/3D + example builds passed |
 | A3 — agent cold E2E | **Human** | Claude 2D/3D + Codex after npm publish |
 | A5 Go/No-Go | **No-Go for public content** | Blocked on live npm + Pages enable (or Vercel). Checklist below. |
@@ -22,19 +22,17 @@
 
 ## Expected demo URLs
 
-**`gh-pages` branch is pushed** with built S1 + C★. Enable GitHub Pages:
+**Preferred: Vercel** — import the repo twice with Root Directory
+`examples/compound-interest` and `examples/voyage-log`. Step-by-step:
+[VERCEL-DEMOS.md](VERCEL-DEMOS.md).
 
-Repo Settings → Pages → Deploy from branch → `gh-pages` / `/ (root)`.
+After deploy (names are suggestions):
 
-Then:
+- S1: `https://faraday-demo-interest.vercel.app`
+- C★: `https://faraday-demo-voyage.vercel.app`
 
-- Index: `https://ssota-labs.github.io/faraday-academy/`
-- S1: `https://ssota-labs.github.io/faraday-academy/compound-interest/`
-- C★: `https://ssota-labs.github.io/faraday-academy/voyage-log/`
-
-(Agent token cannot enable Pages — 403. Branch is ready.)
-
-Vercel (after `NPM_TOKEN` publish): Root Directory = `examples/<name>`.
+**Fallback:** `gh-pages` branch is pushed; enable GitHub Pages only if you want
+`*.github.io` URLs instead.
 
 ## Commands
 
