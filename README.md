@@ -60,6 +60,37 @@ friction: you already have the agent, Faraday is just a scaffolder it drives.
 
 ---
 
+## Why Faraday
+
+Coding agents made it suddenly easy — and cheap — to *build* things with code, and
+educational material is one of the biggest beneficiaries. Yet most of it is still
+trapped in **static text**: slides, PDFs, textbooks. The same idea taught as an
+**interactive** — a simulation you steer, a quiz that adapts, an animation, a live
+graph, a 3D scene, an AI tutor beside the text — lands better, because the learner
+*does* the idea instead of reading it.
+
+This isn't a new dream. Flash-era science simulations proved interactive material
+works. But it never went mainstream, because **code was expensive** — you needed an
+engineer for every lesson. Coding agents remove that cost: an educator can now
+describe what they want and get a working interactive.
+
+Early-adopter educators are already trying this. The catch: **quality takes trial
+and error.** A raw agent can build *an* interactive, but getting one that actually
+teaches well — the right interaction, the right assessment, a coherent look — takes
+many iterations.
+
+Faraday front-loads that quality. It ships the **components and modules** good
+courseware reuses, plus a **skill** that teaches the agent how to combine them well —
+so you convey *intent* and the agent produces high-quality material with far less
+trial and error.
+
+And by packaging capabilities as **module packs** — from the surface UI of a lesson
+down to the *software of teaching itself* (pedagogy, methodology) — anyone can bottle
+their own know-how and share it. The goal is a **community** where a great lesson
+format, or a proven teaching method, is one `faraday pack add` away.
+
+---
+
 ## The loop
 
 You drive everything by talking to your agent — it runs the tools for you. A
