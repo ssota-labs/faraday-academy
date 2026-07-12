@@ -28,11 +28,11 @@
     "lib",
     "faraday.css",
     "vite-env.d.ts",
-    "LICENSE"
+    "LICENSE.md"
   ],
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",
-    "prepack": "cp ../../LICENSE ./LICENSE 2>/dev/null || true"
+    "prepack": "cp ../../LICENSE.md ./LICENSE.md 2>/dev/null || true"
   },
   "publishConfig": {
     "access": "public"
@@ -65,5 +65,5 @@
     "vite": "^7.0.0",
     "typescript": "~5.9.0"
   },
-  "license": "MIT"
+  "license": "SEE LICENSE IN LICENSE.md"
 }

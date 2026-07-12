@@ -6,10 +6,10 @@
   "bin": {
     "faraday": "./bin/faraday.mjs"
   },
-  "files": ["bin", "src", "templates", "LICENSE"],
+  "files": ["bin", "src", "templates", "LICENSE.md"],
   "scripts": {
     "test": "node --test src/*.test.mjs",
-    "prepack": "cp ../../LICENSE ./LICENSE 2>/dev/null || true"
+    "prepack": "cp ../../LICENSE.md ./LICENSE.md 2>/dev/null || true"
   },
   "publishConfig": {
     "access": "public"
@@ -23,5 +23,5 @@
   "bugs": {
     "url": "https://github.com/ssota-labs/faraday-academy/issues"
   },
-  "license": "MIT"
+  "license": "SEE LICENSE IN LICENSE.md"
 }

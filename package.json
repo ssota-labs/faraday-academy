@@ -9,6 +9,6 @@
     "publish:packages:dry": "node scripts/publish-packages.mjs --dry-run",
     "stage1:cold-e2e": "node scripts/stage1-cold-e2e.mjs"
   },
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE.md",
   "packageManager": "pnpm@11.5.2"
 }
