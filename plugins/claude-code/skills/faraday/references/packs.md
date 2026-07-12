@@ -1,9 +1,12 @@
 # Module packs — capabilities you install
 
 Capabilities beyond a plain 2D lesson are **module packs**: self-contained units
-(a `pack.json` manifest + runtime code + a skill guide) that `faraday pack add`
-installs into a lesson. This is the CLI's extension mechanism — the skill's job is
-to know packs exist, install the right one, then **read the pack's own guide**.
+(a `pack.json` manifest + runtime code + a skill guide). `faraday new` is
+batteries-included — it auto-installs all nine (skill + runtime), so every
+capability is on hand from the start. `faraday pack add` installs one individually
+(a third-party pack, or re-adding a removed one). This is the CLI's extension
+mechanism — the skill's job is to know packs exist, use the right ones, then
+**read each pack's own guide** at `.faraday/packs/<name>/`.
 
 > **"Module pack" ≠ "world pack".** Here, *module pack* = an installable capability
 > (`faraday pack add three`). In [worlds.md](worlds.md), *world pack* / *world shape*
@@ -39,11 +42,12 @@ faraday pack add ./path | owner/repo | npm:@scope/pack   # third-party sources
 | `deck` | slideshow delivery — one idea per screen, prev/next, animation. |
 | `kids` | a young-learner tablet lesson — CRA, big targets, celebration. |
 | `notes` | handwriting / sketch on a stylus — a full-page pen ink canvas. |
-| `lecture-design` · `audience` | **designing how it teaches** — pedagogy + per-audience methodology (default packs, auto-installed at `new`). |
+| `lecture-design` · `audience` | **designing how it teaches** — pedagogy + per-audience methodology. |
 
-There are **no capability flags** on `faraday new`. Scaffold a plain lesson, then
-`faraday pack add <name>` for what it needs (`three --physics`, `tutor`, …) — one
-uniform mechanism for every pack.
+There are **no capability flags** on `faraday new` — and no need for them: `new` is
+**batteries-included**, auto-installing all nine packs (skill + runtime). Use
+`--no-defaults` for a minimal lesson, and `faraday pack remove <name>` to drop what a
+finished lesson doesn't need (e.g. the heavy `three`/`tutor` runtimes) before shipping.
 
 ## Authoring / validating a pack
 

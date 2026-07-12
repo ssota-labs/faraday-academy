@@ -306,14 +306,17 @@ faraday pack list | add <name|source> [--physics] | remove <name> | show <name> 
 faraday help
 ```
 
-**Capabilities are packs, not flags.** Scaffold a plain lesson with `new`, then add
-what it needs with `faraday pack add <name>` — `three` (`--physics` variant), `tutor`,
-`srs`, `exam`, `deck`, `kids`, `notes`, … (`faraday pack list` shows them all). The
-pedagogy + audience packs auto-install at `new`; `--no-defaults` skips them.
+**Capabilities are packs, not flags** — and `new` is **batteries-included**: it
+auto-installs all nine packs (skill + runtime), so `three` (`--physics` variant),
+`tutor`, `srs`, `exam`, `deck`, `kids`, `notes`, `lecture-design`, and `audience` are
+on hand from the start (`faraday pack list` shows the live catalog). Use `--no-defaults`
+for a minimal lesson, and `faraday pack remove <name>` to drop what a finished lesson
+doesn't need (e.g. the heavy `three`/`tutor` runtimes). `faraday pack add <name|source>`
+installs a third-party pack or re-adds a removed one.
 
 | `new` flag | Effect |
 |---|---|
-| `--no-defaults` | skip the auto-installed `lecture-design` + `audience` packs. |
+| `--no-defaults` | skip the auto-installed packs — scaffold a minimal lesson. |
 | `--at <dir>` | scaffold into `<dir>` instead of `./<name>`. |
 | `--overwrite` | allow writing into a non-empty target. |
 | `--skip-install` | skip `pnpm install` (or set `FARADAY_SKIP_INSTALL=1`). |
@@ -333,7 +336,7 @@ faraday-academy/                # repo root = the pnpm workspace (apps/* + packa
 ├─ packages/
 │  ├─ cli/                      # @faraday-academy/cli — the `faraday` scaffolder (bin + src)
 │  │  └─ templates/starter/     #   the app shell stamped by `faraday new` (packs bundled at build)
-│  ├─ official-packs/           # installable module packs (three · tutor · srs · lecture-design · audience) + pack.schema.json
+│  ├─ official-packs/           # nine module packs (three · tutor · srs · exam · deck · kids · notes · lecture-design · audience) + pack.schema.json
 │  ├─ runtime/                  # @faraday-academy/runtime — UI, blocks, runtime, styles, world, lms (lessons pin this)
 │  ├─ three/                    # @faraday-academy/three — opt-in R3F/three.js 3D block (pack add three [--physics])
 │  └─ tutor/                    # @faraday-academy/tutor — opt-in docked <Tutor> chat widget (pack add tutor)
@@ -356,10 +359,10 @@ faraday-academy/                # repo root = the pnpm workspace (apps/* + packa
 ## What the scaffolder does
 
 Copy starter → target · restore `.gitignore` · pin `@faraday-academy/runtime` ·
-auto-install the default packs (`lecture-design`, `audience`) · wire `app.css` to
-the runtime stylesheet · inject package name + HTML title · issue a `lessonId`
-provenance record · `pnpm install`. Add capabilities afterward with
-`faraday pack add <name>`. `faraday check`/`doctor` verify the layout + exact pins.
+auto-install all nine packs (skill + runtime; `--no-defaults` to skip) · wire `app.css`
+to the runtime stylesheet · inject package name + HTML title · issue a `lessonId`
+provenance record · `pnpm install`. Trim unused packs with `faraday pack remove <name>`;
+`faraday check`/`doctor` verify the layout + exact pins.
 
 ## Develop Faraday itself
 

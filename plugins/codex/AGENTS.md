@@ -24,9 +24,10 @@ capabilities afterward with `faraday pack add <name>` (e.g. `three`, `three
 
 ## The loop
 
-1. `npx @faraday-academy/cli@latest new <name> --json` → parse JSON, `cd` in, then
-   `faraday pack add <name>` any capabilities the topic needs (`three`, `three
-   --physics`, `tutor`, …).
+1. `npx @faraday-academy/cli@latest new <name> --json` → parse JSON, `cd` in. All nine
+   packs are pre-installed (batteries-included); `faraday pack remove <name>` the ones
+   the topic doesn't use (trim the heavy `three`/`tutor` runtimes), and `faraday pack
+   add three --physics` if you need the rapier variant.
 2. Read the scaffold's `AGENTS.md` + `docs/authoring.md`; start from a
    `docs/examples/*.tsx` when one fits.
 3. Author `src/lesson/lesson.tsx` from `@faraday-academy/runtime/blocks` + `@faraday-academy/runtime/runtime`:

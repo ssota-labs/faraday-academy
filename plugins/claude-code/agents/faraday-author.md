@@ -26,14 +26,15 @@ are your contract.
 ## Loop
 
 1. **Scope** — one idea and what the reader manipulates / sees change. Choose the
-   lesson shape (stepped vs continuous). `new` always scaffolds plain 2D; add the
-   capabilities the subject needs as packs after scaffolding (`three` for spatial
-   subjects with a required `mood`; `three --physics` for real dynamics; `tutor` if
-   the reader should ask questions; `<Course>`/`<CurriculumHost>` for multi-lesson).
+   lesson shape (stepped vs continuous). `new` is batteries-included — all nine packs
+   come pre-installed; identify which the subject uses (`three` for spatial subjects
+   with a required `mood`; `three --physics` for real dynamics; `tutor` if the reader
+   should ask questions; `<Course>`/`<CurriculumHost>` for multi-lesson).
 2. **Scaffold** — `npx @faraday-academy/cli@latest new <name> --json` (or the
    local `node <faraday-academy>/packages/cli/bin/faraday.mjs`), parse the JSON, `cd` in.
-   Then `faraday pack add <name>` the capabilities you scoped (e.g. `three`,
-   `three --physics`, `tutor`).
+   Everything's pre-installed; `faraday pack remove <name>` the packs you didn't scope
+   (trim the heavy `three`/`tutor` runtimes), and `faraday pack add three --physics`
+   if you need the rapier variant.
 3. **Learn the surface** — read `AGENTS.md`, `docs/authoring.md`, and any
    `docs/examples/*.tsx`. Start from an example when one fits.
 4. **Author** `src/lesson/lesson.tsx` (+ siblings): `<Lesson>` frame, a

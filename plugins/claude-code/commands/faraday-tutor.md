@@ -8,10 +8,10 @@ Add / embed the Faraday AI tutor. Context: **$ARGUMENTS**
 
 Follow the `faraday` skill's `references/tutor.md`. Steps:
 
-1. **Ensure the tutor server layer exists.** If the current project has no
-   `workflows/tutor-agent.ts` / `api/chat.post.ts`, the `tutor` pack hasn't been
-   added yet. Run `faraday pack add tutor` to install it. Do **not** hand-add the
-   server layer — it's a pinned dependency the pack manages.
+1. **Ensure the tutor server layer exists.** `faraday new` ships the `tutor` pack by
+   default, but a lesson may have trimmed it. If the project has no
+   `workflows/tutor-agent.ts` / `api/chat.post.ts`, re-add it with `faraday pack add
+   tutor`. Do **not** hand-add the server layer — it's a pinned dependency the pack manages.
 
 2. **Key setup** (local): ensure `.env.local` exists with `AI_GATEWAY_API_KEY`:
    ```bash

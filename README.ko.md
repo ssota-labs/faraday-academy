@@ -308,14 +308,17 @@ faraday pack list | add <name|source> [--physics] | remove <name> | show <name> 
 faraday help
 ```
 
-**능력은 플래그가 아니라 팩입니다.** `new`로 평범한 레슨을 만든 뒤, 필요한 걸
-`faraday pack add <name>`로 추가하세요 — `three`(`--physics` variant), `tutor`,
-`srs`, `exam`, `deck`, `kids`, `notes` … (`faraday pack list`로 전체 확인). 교수법·
-audience 팩은 `new` 시 자동 설치되며, `--no-defaults`로 끕니다.
+**능력은 플래그가 아니라 팩입니다** — 그리고 `new`는 **배터리 포함(batteries-included)**:
+아홉 개 팩(스킬 + 런타임)을 모두 자동 설치하므로 `three`(`--physics` variant), `tutor`,
+`srs`, `exam`, `deck`, `kids`, `notes`, `lecture-design`, `audience`가 처음부터 손안에
+있습니다 (`faraday pack list`로 라이브 카탈로그 확인). 최소 레슨은 `--no-defaults`,
+완성된 레슨에서 불필요한 팩(예: 무거운 `three`/`tutor` 런타임)은 `faraday pack remove
+<name>`로 덜어냅니다. `faraday pack add <name|source>`는 서드파티 팩을 설치하거나
+제거한 팩을 다시 추가합니다.
 
 | `new` 플래그 | 효과 |
 |---|---|
-| `--no-defaults` | 자동 설치되는 `lecture-design` + `audience` 팩 건너뛰기. |
+| `--no-defaults` | 자동 설치되는 팩들을 건너뛰고 최소 레슨으로 스캐폴드. |
 | `--at <dir>` | `./<name>` 대신 `<dir>`에 스캐폴드. |
 | `--overwrite` | 비어 있지 않은 대상에도 쓰기 허용. |
 | `--skip-install` | `pnpm install` 건너뛰기 (또는 `FARADAY_SKIP_INSTALL=1` 설정). |
@@ -335,7 +338,7 @@ faraday-academy/                # 저장소 루트 = pnpm 워크스페이스 (ap
 ├─ packages/
 │  ├─ cli/                      # @faraday-academy/cli — `faraday` 스캐폴더 (bin + src)
 │  │  └─ templates/starter/     #   `faraday new`가 찍어내는 앱 셸 (팩은 빌드 시 번들)
-│  ├─ official-packs/           # 설치 가능한 모듈 팩 (three · tutor · srs · lecture-design · audience) + pack.schema.json
+│  ├─ official-packs/           # 아홉 개 모듈 팩 (three · tutor · srs · exam · deck · kids · notes · lecture-design · audience) + pack.schema.json
 │  ├─ runtime/                  # @faraday-academy/runtime — UI, 블록, 런타임, 스타일, 월드, lms (수업이 이걸 pin)
 │  ├─ three/                    # @faraday-academy/three — 옵트인 R3F/three.js 3D 블록 (pack add three [--physics])
 │  └─ tutor/                    # @faraday-academy/tutor — 옵트인 도킹형 <Tutor> 채팅 위젯 (pack add tutor)
@@ -358,10 +361,10 @@ faraday-academy/                # 저장소 루트 = pnpm 워크스페이스 (ap
 ## 스캐폴더가 하는 일
 
 starter 복사 → 대상 · `.gitignore` 복원 · `@faraday-academy/runtime` pin
-기본 팩(`lecture-design`·`audience`) 자동설치 · `app.css`를 런타임 스타일시트에 연결
-· 패키지명 + HTML 제목 주입 · `lessonId` 출처(provenance) 레코드 발급 ·
-`pnpm install`. 그다음 `faraday check`/`doctor`가 레이아웃 + 정확한 pin을
-검증합니다.
+아홉 개 팩(스킬 + 런타임) 모두 자동설치(`--no-defaults`로 생략) · `app.css`를 런타임
+스타일시트에 연결 · 패키지명 + HTML 제목 주입 · `lessonId` 출처(provenance) 레코드
+발급 · `pnpm install`. 불필요한 팩은 `faraday pack remove <name>`로 덜어내고,
+`faraday check`/`doctor`가 레이아웃 + 정확한 pin을 검증합니다.
 
 ## Faraday 자체 개발하기
 

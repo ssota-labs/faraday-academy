@@ -33,8 +33,8 @@ non-obvious caveats.
 - Verify a lesson: `node packages/cli/bin/faraday.mjs check --dir <lesson>` (layout + exact pins).
 - Module packs: `pack list [--json]` (catalog) · `pack add <name|source> [--physics] [--dir]`
   (source = official name · `./path` · `owner/repo` · `npm:<spec>`) · `pack remove <name>` ·
-  `pack show <name|source>` (print skill guide) · `pack validate <name|source>`. Default packs
-  (`lecture-design`, `audience`) auto-install at `new` (`--no-defaults` to skip).
+  `pack show <name|source>` (print skill guide) · `pack validate <name|source>`. `new` is
+  batteries-included: all nine packs auto-install (`--no-defaults` to skip; `pack remove` to trim).
 - Exit codes: `0` ok · `1` check failed · `2` usage error · `4` environment error.
 
 ### Working inside a generated lesson
@@ -83,9 +83,13 @@ invisible to the agent, and vice versa.
 `AGENTS.md` pointer), recorded in `.faraday/provenance.json`. Official packs are **bundled
 into the CLI at `prepack`** (`scripts/bundle-packs.mjs` → `<cli>/packs`, gitignored); dev
 reads `official-packs` directly. Nine ship today: `three`, `tutor`, `srs`, `lecture-design`, `audience`, `exam`, `deck`,
-`kids`, `notes`. `lecture-design`/`audience` are **default packs** (`"default": true`) — `faraday new`
-auto-installs their skill halves so every lesson carries the pedagogy + audience knowledge
-in `.faraday/packs/`. A pack's skill can be a **folder with an `entry`** (front-door index,
-e.g. `lecture-design`/`exam`): `faraday pack show <name>` prints just the entry, `pack show
-<name> <file>` a sub-file, `--all` everything — read them at design time, no lesson needed. Capabilities are added with `faraday pack add <name>`, not flags — one uniform mechanism for all packs. See `src/pack.mjs` (`resolvePack`/`installPack`/`removePack`/`readPackSkill`/
+`kids`, `notes`. **All nine are default packs** (`"default": true`) — `faraday new` is
+batteries-included and auto-installs every pack (skill + runtime), so each lesson carries all
+the capabilities and the pedagogy/audience knowledge in `.faraday/packs/`. Use `--no-defaults`
+for a minimal lesson, and `faraday pack remove <name>` to trim what a finished lesson doesn't
+need (e.g. the heavy `three`/`tutor` runtimes). A pack's skill can be a **folder with an `entry`**
+(front-door index, e.g. `lecture-design`/`exam`): `faraday pack show <name>` prints just the entry,
+`pack show <name> <file>` a sub-file, `--all` everything — read them at design time, no lesson
+needed. Capabilities are packs, not flags — one uniform mechanism for all. See `src/pack.mjs`
+(`resolvePack`/`installPack`/`removePack`/`readPackSkill`/
 `validateManifest`) and [`specs/module-packs.md`](specs/module-packs.md).

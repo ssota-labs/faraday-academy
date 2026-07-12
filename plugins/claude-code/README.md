@@ -38,7 +38,7 @@ validate .` from the repo root before publishing).
   - **Build API** — `blocks.md` (block API + lesson shapes), `worlds.md`
     (`<Course>`/`<CurriculumHost>`/packs/3D/LMS), `tutor.md` (the grounded tutor).
 - **Slash commands**
-  - `/faraday-new <topic>` — scaffold + author a lesson (add capabilities with `faraday pack add`).
+  - `/faraday-new <topic>` — scaffold + author a lesson (all packs pre-installed; trim with `faraday pack remove`).
   - `/faraday-tutor` — add / embed and verify the grounded AI tutor.
   - `/faraday-check` — run the gates and fix integrity drift.
   - `/faraday-deploy [preview|prod]` — build + deploy (static, or Vercel for tutors).

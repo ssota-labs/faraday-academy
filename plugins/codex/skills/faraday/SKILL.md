@@ -71,11 +71,12 @@ dir, next steps). Exit codes: `0` ok · `1` check failed · `2` usage · `4` env
 
 ## The build loop
 
-1. **Scaffold.** `new` always produces a plain 2D lesson; add capabilities as packs
-   afterward (see the decision guide below):
+1. **Scaffold.** `new` is batteries-included — it auto-installs all nine packs (skill
+   + runtime), so every capability is already on hand (see the decision guide below):
    `npx @faraday-academy/cli@latest new <name> [--json]`
-   (installs deps unless `--skip-install`). `cd` into the new dir, then
-   `faraday pack add <name>` any capabilities the topic needs.
+   (installs deps unless `--skip-install`). `cd` into the new dir, then, before
+   shipping, `faraday pack remove <name>` any packs the topic doesn't use (especially
+   the heavy `three`/`tutor` runtimes).
 2. **Read the in-project guide** — the scaffold ships `AGENTS.md` and
    `docs/authoring.md`; the block API also lives in [references/blocks.md](references/blocks.md).
    Start from a `docs/examples/*.tsx` when one fits (stepped, continuous, course,
@@ -131,22 +132,23 @@ a full-bleed game screen with a HUD), and a lesson that's a single gadget with
 three sentences (instead of a solid multi-interaction textbook chapter with all
 math in `<TeX>`). Grade each MUST pass/fail before reporting done.
 
-## Decision guide — capabilities are packs, not flags
+## Decision guide — which packs a lesson uses
 
-`faraday new` always scaffolds a plain 2D lesson. Capabilities are **module packs**
-you add after scaffolding, uniformly, with `faraday pack add <name>`:
+`faraday new` is batteries-included: it pre-installs all nine packs. You don't *add*
+capabilities — you **use** the ones that fit and `faraday pack remove <name>` the rest
+(there are no flags):
 
-- **2D (default)** — diagrams, charts, algorithm walk-throughs, parameter
-  exploration. Stays light; no packs needed. The right default for most topics.
-- **`faraday pack add three`** — the subject is inherently spatial (astronomy,
-  molecules, geometry, anatomy). Adds R3F `<Scene3D>`. Domain scenes **must** set a `mood`.
-- **`faraday pack add three --physics`** — genuine dynamics: collisions, gravity,
-  stacking, joints (`--physics` is a variant of the `three` pack). For scripted
-  motion (orbits) use the render loop, not physics.
-- **`faraday pack add tutor`** — the reader benefits from asking questions. Adds a
-  durable, grounded chat tutor. Needs `AI_GATEWAY_API_KEY` locally. See [references/tutor.md](references/tutor.md).
-- **Other packs** — `srs`, `exam`, `deck`, `kids`, `notes` add the matching
-  capability the same way (`faraday pack add <name>`).
+- **plain 2D** — diagrams, charts, algorithm walk-throughs, parameter exploration.
+  Uses no capability pack; trim the heavy runtimes. The right default for most topics.
+- **`three`** — the subject is inherently spatial (astronomy, molecules, geometry,
+  anatomy). R3F `<Scene3D>`. Domain scenes **must** set a `mood`.
+- **`three --physics`** — genuine dynamics: collisions, gravity, stacking, joints.
+  The rapier variant isn't in the base install — add it with `faraday pack add three
+  --physics`. For scripted motion (orbits) use the render loop, not physics.
+- **`tutor`** — the reader benefits from asking questions. A durable, grounded chat
+  tutor. Needs `AI_GATEWAY_API_KEY` locally. See [references/tutor.md](references/tutor.md).
+- **Other packs** — `srs`, `exam`, `deck`, `kids`, `notes`, `lecture-design` are all
+  pre-installed; `faraday pack remove <name>` what a lesson doesn't use.
 - **Single lesson vs. course vs. world** — one idea → one `<Lesson>`; a sequence →
   `<Course>`; a graph with unlock progression / a roadmap map → `<CurriculumHost>` +
   a pack. Design this in the Curriculum phase, build it per [references/worlds.md](references/worlds.md).

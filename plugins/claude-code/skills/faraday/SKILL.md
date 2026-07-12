@@ -40,10 +40,11 @@ graph, generative interactions, spaced retrieval, feed-forward feedback — from
 **`lecture-design` pack**, and layer the **audience default** on top: one
 methodology per learner population (CRA for children, 5E for secondary, Peer
 Instruction for undergrads, Mayer's principles for the general public, Merrill's
-First Principles for professionals) from the **`audience` pack**. Both are
-**default packs** — auto-installed at `faraday new` (read them at
-`.faraday/packs/{lecture-design,audience}/`), or load either at design time with
-`faraday pack show <name>`.
+First Principles for professionals) from the **`audience` pack**. Every pack is a
+**default pack** — `faraday new` is batteries-included and auto-installs all nine
+(read them at `.faraday/packs/<name>/`; `faraday pack show <name>` at design time).
+Drop the ones a finished lesson doesn't need with `faraday pack remove <name>`
+(e.g. the heavy `three`/`tutor` runtimes) before shipping.
 
 ## The one rule that governs everything: two zones
 
@@ -70,11 +71,12 @@ dir, next steps). Exit codes: `0` ok · `1` check failed · `2` usage · `4` env
 
 ## The build loop
 
-1. **Scaffold + add capabilities.** Scaffold a plain lesson, then add the packs the
-   subject needs (decision guide below) — capabilities are packs, not flags:
-   `npx @faraday-academy/cli@latest new <name> [--json]` (installs deps unless
-   `--skip-install`), `cd` in, then e.g. `faraday pack add three --physics` /
-   `faraday pack add tutor`. `faraday pack list` shows them all.
+1. **Scaffold.** `faraday new` is batteries-included — it auto-installs all nine
+   packs (skill + runtime), so every capability is already on hand; there are no
+   capability flags: `npx @faraday-academy/cli@latest new <name> [--json]` (installs
+   deps unless `--skip-install`), then `cd` in. Use the decision guide below to know
+   which packs the subject actually uses; before shipping, `faraday pack remove <name>`
+   the ones it doesn't (especially the heavy `three`/`tutor` runtimes).
 2. **Read the in-project guide** — the scaffold ships `AGENTS.md` and
    `docs/authoring.md`; the block API also lives in [references/blocks.md](references/blocks.md).
    Start from a `docs/examples/*.tsx` when one fits (stepped, continuous, course,
@@ -129,23 +131,25 @@ a full-bleed game screen with a HUD), and a lesson that's a single gadget with
 three sentences (instead of a solid multi-interaction textbook chapter with all
 math in `<TeX>`). Grade each MUST pass/fail before reporting done.
 
-## Decision guide — which packs to add
+## Decision guide — which packs a lesson uses
 
-Capabilities beyond a plain 2D lesson are **module packs** you `faraday pack add`
-(no flags) — run `faraday pack list` for the live catalog and see
+`faraday new` pre-installs all nine packs (batteries-included), so you don't *add*
+capabilities — you **use** the ones that fit and `faraday pack remove <name>` the
+rest (there are no flags). Run `faraday pack list` for the live catalog and see
 [references/packs.md](references/packs.md). Map the creator's intent to a pack:
 
-- **2D (default)** — diagrams, charts, algorithm walk-throughs, parameter
-  exploration. Stays light; no packs. The right default for most topics.
-- **`pack add three`** — the subject is inherently spatial (astronomy, molecules,
-  geometry, anatomy). Adds R3F `<Scene3D>`. Domain scenes **must** set a `mood`.
-- **`pack add three --physics`** — genuine dynamics: collisions, gravity, stacking,
-  joints (implies 3D). For scripted motion (orbits) use the render loop, not physics.
-- **`pack add tutor`** — the reader benefits from asking questions. Adds a durable,
-  grounded chat tutor. Needs `AI_GATEWAY_API_KEY` locally. See [references/tutor.md](references/tutor.md).
+- **plain 2D** — diagrams, charts, algorithm walk-throughs, parameter exploration.
+  Uses no capability pack; trim the heavy runtimes. The right default for most topics.
+- **`three`** — the subject is inherently spatial (astronomy, molecules, geometry,
+  anatomy). R3F `<Scene3D>`. Domain scenes **must** set a `mood`.
+- **`three --physics`** — genuine dynamics: collisions, gravity, stacking, joints
+  (implies 3D). The rapier variant isn't in the base install — add it with
+  `faraday pack add three --physics`. For scripted motion (orbits) use the render loop.
+- **`tutor`** — the reader benefits from asking questions. A durable, grounded chat
+  tutor. Needs `AI_GATEWAY_API_KEY` locally. See [references/tutor.md](references/tutor.md).
 - **other packs** — memorization (`srs`), exams (`exam`), slideshows (`deck`), kids
-  (`kids`), pen notes (`notes`), pedagogy (`lecture-design`). Same command:
-  `faraday pack add <name>`.
+  (`kids`), pen notes (`notes`), pedagogy (`lecture-design`). All pre-installed;
+  `faraday pack remove <name>` what a lesson doesn't use.
 - **Single lesson vs. course vs. world** — one idea → one `<Lesson>`; a sequence →
   `<Course>`; a graph with unlock progression / a roadmap map → `<CurriculumHost>` +
   a **world pack** (`map2dPack`/`world3dPack` — a presentation shape, *not* a module

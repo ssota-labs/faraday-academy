@@ -5,7 +5,8 @@
 > 팩은 CLI에서 분리돼
 > `packages/official-packs/`에 살고, `prepack` 빌드 스텝이 CLI에 번들한다. `pack add`는
 > 공식명·로컬경로·github(`owner/repo`)·npm(`npm:@scope/pack`) 소스를 해석하므로 **누구나
-> 팩을 배포**할 수 있다. `lecture-design`·`audience`는 **default 팩**(`new` 자동설치),
+> 팩을 배포**할 수 있다. **아홉 팩 모두 default**(`new`가 batteries-included로 전부 자동설치,
+> `--no-defaults`로 최소 레슨 · `pack remove`로 덜어냄),
 > `lecture-design`·`exam`은 **폴더 스킬 + entry** front-door. 능력은 `faraday pack add`로
 > 추가하며 `faraday new`엔 능력 플래그가 없다(`--3d`/`--tutor` 제거). 옛 `templates/addon-*`도 제거됐다.
 > 추가 팩(커뮤니티 기여 등)은 로드맵.
@@ -89,11 +90,12 @@ faraday pack validate <name|source> [--json]    # pack.json 계약 검증
 적용한다. `installPack`은 폴더 전체를 `.faraday/packs/<name>/`로 복사하므로, 빌드 타임엔
 에이전트가 entry를 읽고 필요한 하위 파일만 연다. `lecture-design`·`exam`이 이 형태.
 
-**Default 팩** — `pack.json`에 `"default": true`인 팩(`lecture-design`·`audience`)은
-`faraday new`가 자동 설치한다(`--no-defaults`로 opt-out). 유일 소스는 팩이고, 설계
-타임엔 `faraday pack show <name>`으로, 빌드 타임엔 레슨의 `.faraday/packs/<name>/`
+**Default 팩 (batteries-included)** — **아홉 팩 모두** `pack.json`에 `"default": true`라,
+`faraday new`가 스킬 + 런타임을 전부 자동 설치한다(`--no-defaults`로 opt-out, 완성 레슨에서
+불필요한 팩은 `pack remove`로 덜어냄 — 특히 무거운 `three`/`tutor` 런타임). 유일 소스는
+팩이고, 설계 타임엔 `faraday pack show <name>`으로, 빌드 타임엔 레슨의 `.faraday/packs/<name>/`
 에서 읽는다. 베이스 스킬의 `references/pedagogy.md`·`audience.md`는 제거되고 SKILL.md가
-이 팩들을 가리킨다.
+`lecture-design`·`audience` 팩을 가리킨다.
 
 **`pack remove`** — un-register(스킬 디렉터리 + AGENTS 포인터 + provenance 엔트리)는
 항상 안전하게 제거하고, deps/css는 **다른 설치된 팩이 공유하지 않는 것만** 되돌린다.
@@ -177,8 +179,8 @@ faraday pack validate <name|source> [--json]    # pack.json 계약 검증
     `scaffold`(new 전용) · `skill`(파일/폴더). provenance: 공식=문자열 태그,
     외부=`{name, source}`.
   - `validateManifest()` — zero-dep 구조 검증 (ajv 없이).
-- `generate.mjs` — 능력 플래그(`--3d`/`--physics`/`--tutor`) 제거 → 플레인 스캐폴드 +
-  default 팩만. 능력은 `faraday pack add`로 추가.
+- `generate.mjs` — 능력 플래그(`--3d`/`--physics`/`--tutor`) 제거 → 스캐폴드 + 전체
+  default 팩(아홉 개) 자동설치. 개별 추가/재추가는 `faraday pack add`.
   - `removePack()` — un-register(항상) + 비공유 deps/css 되돌리기; 복사 파일은 보고만.
 - `cli.mjs` — `faraday pack list [--json]` / `add <name|source> [--physics] [--dir] [--json]`
   / `remove <name> [--dir] [--json]` / `validate <name|source> [--json]`.
