@@ -12,28 +12,33 @@ See `README.md` for the command reference; notes below cover non-obvious caveats
 ### Toolchain / dependencies
 - Node **v22** and **pnpm** (`pnpm@11.5.2`, pinned via `packageManager`) are pre-installed on the
   base image. A committed root `pnpm-lock.yaml` + `pnpm-workspace.yaml` drive a single
-  `pnpm install` at the repo root that links all nine workspace projects — the startup update
-  script runs it. The `@faraday-academy/*` packages are also published on npm at `0.1.0`, so
-  lessons scaffolded standalone (outside this workspace) resolve their pins from the registry.
+  `pnpm install` at the repo root that links all nine workspace projects. The `@faraday-academy/*`
+  packages are also published on npm at `0.1.0`, so lessons scaffolded standalone resolve pins
+  from the registry.
+- **No committed `.cursor/environment.json`** — if that file is in git, Cursor disables **Runtime
+  Secrets** on the environment dashboard (*"managed by environment.json"*). Configure the **update
+  script** and secrets in [Cloud Agents → your environment](https://cursor.com/dashboard?tab=cloud-agents)
+  instead; see [`.cursor/README.md`](.cursor/README.md).
 - There is **no ESLint/Prettier**; the lint-equivalent gate is `typecheck` (tsc). Run per package,
   e.g. `pnpm --filter @faraday-academy/runtime typecheck` (also `three`, `tutor`, and
   `@faraday-academy/labs`). The CLI is plain `.mjs` — no typecheck, covered by its unit tests.
 
 ### Secrets → `.env.local` on startup
-**`environment.json` does not store secrets** — it only defines `install` / `start` in git. The
-dashboard message *"managed by `.cursor/environment.json`"* means those commands are edited in
-code, not that Runtime Secrets are unavailable.
+**Do not commit `.cursor/environment.json`** if you need dashboard Runtime Secrets — Cursor
+locks secret editing when install/start are code-managed (see `.cursor/README.md`).
 
-**Add secrets in the Cursor dashboard** (Cloud Agents → your environment → **Runtime Secrets**).
-Names must match `.env.example` exactly (e.g. `NPM_TOKEN`, `VERCEL_TOKEN`). Cursor injects them
-as `process.env` on every agent boot.
+1. **Cursor dashboard** → Cloud Agents → this repo’s environment → **Runtime Secrets**  
+   Names must match `.env.example` (`NPM_TOKEN`, `VERCEL_TOKEN`, …).
+2. **Update script** in the same environment page:
 
-**Materialize to `.env.local`:** `scripts/setup-env-local.mjs` runs from the `start` hook in
-`.cursor/environment.json` (every boot, after secrets are injected). It writes matching non-empty
-env values into `.env.local`, preserves existing keys, and logs key **names only**. Manual rerun:
-`pnpm setup:env` (or `node scripts/setup-env-local.mjs`; `--dir <lesson>` for a generated lesson).
+   ```sh
+   pnpm install
+   test -f scripts/setup-env-local.mjs && node scripts/setup-env-local.mjs || true
+   ```
 
-See [`.cursor/README.md`](.cursor/README.md) for the full split (install vs start vs secrets).
+3. `scripts/setup-env-local.mjs` writes matching `process.env` values into `.env.local`
+   (git-ignored, names-only logs). Re-run: `pnpm setup:env`. After adding/changing secrets,
+   run **Start Setup Agent → Update Existing Env** so the VM picks them up.
 
 ### Running / testing the CLI (from repo root)
 - Tests: `node --test packages/cli/src/*.test.mjs` (Node's built-in runner; no ports, no services).

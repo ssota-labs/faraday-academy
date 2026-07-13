@@ -1,30 +1,54 @@
 # Cursor Cloud environment (this repo)
 
-## What `environment.json` controls (edit in git)
+## Why there is no committed `environment.json`
 
-| Field | Purpose |
-|---|---|
-| `install` | Runs on boot to refresh deps (`pnpm install`). Cached when unchanged. |
-| `start` | Runs on **every** agent boot — use for secret → `.env.local` materialization. |
+If `.cursor/environment.json` is **committed to the repo**, Cursor treats the environment as
+**code-managed**. The dashboard then shows:
 
-The dashboard message *"This environment is managed by `.cursor/environment.json`"* means
-**install/start/docker** are versioned in the repo. It does **not** mean secrets are disabled.
+> *This environment is managed by a `.cursor/environment.json` file in the repository.*
 
-## Where secrets go (Cursor dashboard — not in this file)
+In that mode the **environment page cannot edit Runtime Secrets in the web UI** (install/start are
+read-only from git). That blocks the workflow we want: teammates add `NPM_TOKEN` / `VERCEL_TOKEN`
+in the dashboard without a code change.
 
-**Do not put API keys or tokens in `environment.json`** (it is committed to git).
+**This repo intentionally omits `.cursor/environment.json`.** Configure the environment from the
+[Cloud Agents dashboard](https://cursor.com/dashboard?tab=cloud-agents) instead.
 
-1. Open [Cursor → Cloud Agents](https://cursor.com/dashboard?tab=cloud-agents) → your environment.
-2. Add **Runtime Secrets** whose names match `.env.example` exactly (e.g. `NPM_TOKEN`, `VERCEL_TOKEN`).
-3. On each agent boot, Cursor injects them as `process.env` variables.
-4. `start` runs `scripts/setup-env-local.mjs`, which copies matching keys into `.env.local`
-   (git-ignored) for tools that read files instead of the shell environment.
+## Dashboard setup (recommended)
 
-Re-run manually anytime: `pnpm setup:env`
+1. Open your environment for this repo  
+   (`…/environments/r/github.com/ssota-labs/faraday-academy` or pick it from the list).
+2. **Update script** (runs on every agent boot):
 
-### Troubleshooting
+   ```sh
+   pnpm install
+   test -f scripts/setup-env-local.mjs && node scripts/setup-env-local.mjs || true
+   ```
 
-- **Secret in dashboard but `.env.local` empty?** Check the secret **name** matches `.env.example`
-  (case-sensitive). Re-run `pnpm setup:env` in a terminal inside the agent.
-- **Need a secret only at Docker build time** (private npm registry): use a **Build Secret** in the
-  dashboard and reference it from `.cursor/Dockerfile` with `RUN --mount=type=secret,...`.
+3. **Runtime Secrets** (right sidebar) — names must match `.env.example` exactly:
+   - `NPM_TOKEN` — npm publish (`scripts/publish-packages.mjs`)
+   - `VERCEL_TOKEN` — optional demo deploys
+   - `FARADAY_SKIP_INSTALL` — set to `1` to skip install after `faraday new` in CI
+
+4. After changing secrets, use **Start Setup Agent → Update Existing Env** (or **Start Fresh**)
+   so the VM picks up new values.
+
+`scripts/setup-env-local.mjs` copies matching secrets from `process.env` into `.env.local`
+(git-ignored). Manual rerun: `pnpm setup:env`.
+
+## Optional: code-managed install (trade-off)
+
+You *can* commit `.cursor/environment.json` if you want install/start versioned in git — but you
+lose dashboard secret editing for that environment. Use only when secrets are not needed or you
+inject them another way (e.g. global user secrets, external secret manager).
+
+Example (do **not** commit unless you accept that trade-off):
+
+```json
+{
+  "install": "pnpm install",
+  "start": "test -f scripts/setup-env-local.mjs && node scripts/setup-env-local.mjs || true"
+}
+```
+
+See `environment.json.example` in this folder.
