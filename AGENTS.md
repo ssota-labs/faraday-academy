@@ -20,16 +20,20 @@ See `README.md` for the command reference; notes below cover non-obvious caveats
   `@faraday-academy/labs`). The CLI is plain `.mjs` — no typecheck, covered by its unit tests.
 
 ### Secrets → `.env.local` on startup
-- `scripts/setup-env-local.mjs` materializes Cursor **Runtime Secrets** into `.env.local`.
-  It reads the KEY names declared in `.env.example`, then writes any non-empty
-  `process.env` values with matching names into `.env.local` (preserving keys already
-  present). It logs key **names only**, never values; `.env.local` is git-ignored.
-- Committed `.cursor/environment.json` runs it on every agent boot (after `pnpm install`):
-  `test -f scripts/setup-env-local.mjs && node scripts/setup-env-local.mjs || true`
-- To materialize a secret, save it as a Cursor Secret whose name **exactly matches** a key in
-  `.env.example` (e.g. `NPM_TOKEN`). With no matching Secrets it is a no-op and writes
-  nothing. Re-run manually with `pnpm setup:env` or `node scripts/setup-env-local.mjs`
-  (add `--dir <path>` to target a generated lesson's own `.env.example`, e.g. a lesson with the `tutor` pack).
+**`environment.json` does not store secrets** — it only defines `install` / `start` in git. The
+dashboard message *"managed by `.cursor/environment.json`"* means those commands are edited in
+code, not that Runtime Secrets are unavailable.
+
+**Add secrets in the Cursor dashboard** (Cloud Agents → your environment → **Runtime Secrets**).
+Names must match `.env.example` exactly (e.g. `NPM_TOKEN`, `VERCEL_TOKEN`). Cursor injects them
+as `process.env` on every agent boot.
+
+**Materialize to `.env.local`:** `scripts/setup-env-local.mjs` runs from the `start` hook in
+`.cursor/environment.json` (every boot, after secrets are injected). It writes matching non-empty
+env values into `.env.local`, preserves existing keys, and logs key **names only**. Manual rerun:
+`pnpm setup:env` (or `node scripts/setup-env-local.mjs`; `--dir <lesson>` for a generated lesson).
+
+See [`.cursor/README.md`](.cursor/README.md) for the full split (install vs start vs secrets).
 
 ### Running / testing the CLI (from repo root)
 - Tests: `node --test packages/cli/src/*.test.mjs` (Node's built-in runner; no ports, no services).

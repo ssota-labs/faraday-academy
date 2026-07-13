@@ -1,3 +1,4 @@
 {
-  "install": "pnpm install\ntest -f scripts/setup-env-local.mjs && node scripts/setup-env-local.mjs || true"
+  "install": "pnpm install",
+  "start": "test -f scripts/setup-env-local.mjs && node scripts/setup-env-local.mjs || true"
 }
