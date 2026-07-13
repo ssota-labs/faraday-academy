@@ -4,25 +4,31 @@
 
 This repo is the **Faraday Academy** monorepo (`@faraday-academy/*`): the `@faraday-academy/cli`
 scaffolder that stamps out self-contained Vite + React interactive lessons, plus the runtime,
-3D, and tutor packages those lessons pin. There is no long-running service for the repo itself —
-the CLI runs to completion. See `README.md` for the command reference; notes below cover
-non-obvious caveats.
+3D, and tutor packages those lessons pin. It is now a **pnpm workspace** (`apps/*`, `packages/*`,
+`examples/*`; see `pnpm-workspace.yaml`). The CLI itself runs to completion, but the workspace also
+ships a long-running dev app — `apps/labs`, a Vite catalog that renders the runtime blocks live.
+See `README.md` for the command reference; notes below cover non-obvious caveats.
 
 ### Toolchain / dependencies
-- Node **v22** and **pnpm** are pre-installed on the base image. The CLI has **zero** runtime
-  dependencies (root `package.json` declares none), so the startup update script is a near
-  no-op; nothing extra needs installing to run or test the CLI.
-- There is no committed lockfile at the repo root, and running `npm install` here creates a
-  stray `package-lock.json` — avoid committing it.
+- Node **v22** and **pnpm** (`pnpm@11.5.2`, pinned via `packageManager`) are pre-installed on the
+  base image. A committed root `pnpm-lock.yaml` + `pnpm-workspace.yaml` drive a single
+  `pnpm install` at the repo root that links all nine workspace projects — the startup update
+  script runs it. The `@faraday-academy/*` packages are also published on npm at `0.1.0`, so
+  lessons scaffolded standalone (outside this workspace) resolve their pins from the registry.
+- There is **no ESLint/Prettier**; the lint-equivalent gate is `typecheck` (tsc). Run per package,
+  e.g. `pnpm --filter @faraday-academy/runtime typecheck` (also `three`, `tutor`, and
+  `@faraday-academy/labs`). The CLI is plain `.mjs` — no typecheck, covered by its unit tests.
 
 ### Secrets → `.env.local` on startup
-- `scripts/setup-env-local.mjs` runs from the startup update script. It reads the KEY names in
-  `.env.example` and writes any matching values found in the environment (where Cursor injects
-  saved Secrets) into `.env.local`, preserving keys already present. It logs key **names only**,
-  never values, and `.env.local` is git-ignored.
+- `scripts/setup-env-local.mjs` materializes Cursor **Runtime Secrets** into `.env.local`.
+  It reads the KEY names declared in `.env.example`, then writes any non-empty
+  `process.env` values with matching names into `.env.local` (preserving keys already
+  present). It logs key **names only**, never values; `.env.local` is git-ignored.
+- Committed `.cursor/environment.json` runs it on every agent boot (after `pnpm install`):
+  `test -f scripts/setup-env-local.mjs && node scripts/setup-env-local.mjs || true`
 - To materialize a secret, save it as a Cursor Secret whose name **exactly matches** a key in
-  `.env.example` (e.g. add `AI_GATEWAY_API_KEY` to `.env.example` + Secrets). With no matching
-  Secrets it is a no-op and writes nothing. Re-run manually with `node scripts/setup-env-local.mjs`
+  `.env.example` (e.g. `NPM_TOKEN`). With no matching Secrets it is a no-op and writes
+  nothing. Re-run manually with `pnpm setup:env` or `node scripts/setup-env-local.mjs`
   (add `--dir <path>` to target a generated lesson's own `.env.example`, e.g. a lesson with the `tutor` pack).
 
 ### Running / testing the CLI (from repo root)
@@ -38,11 +44,19 @@ non-obvious caveats.
   batteries-included: all nine packs auto-install (`--no-defaults` to skip; `pack remove` to trim).
 - Exit codes: `0` ok · `1` check failed · `2` usage error · `4` environment error.
 
+### Labs dev app (`apps/labs`)
+- The one long-running service in this repo. Run `pnpm --filter @faraday-academy/labs dev`
+  (Vite, fixed port **4200**, `--host`) to preview every runtime block live, then open
+  `http://localhost:4200/`. `build`/`preview`/`typecheck` scripts exist too. It previews the
+  `packages/runtime` source directly via the `@/faraday` alias, so runtime edits hot-reload here.
+
 ### Working inside a generated lesson
 - `pnpm check` (structure + SHA-256 integrity gates), `pnpm typecheck`, `pnpm build`,
   `pnpm dev`, `pnpm preview` (fixed port 4173).
-- **Non-obvious:** `pnpm dev` (Vite) deliberately uses **no fixed port** — it auto-selects a
-  free one and prints the URL. Pin it for testing with `pnpm dev --port <port> --host`.
+- **Non-obvious ports:** a minimal (`--no-defaults`, no tutor) lesson's `pnpm dev` (plain Vite)
+  uses **no fixed port** — it auto-selects a free one and prints the URL; pin it with
+  `pnpm dev --port <port> --host`. But a batteries-included lesson from `faraday new` includes the
+  tutor pack, so `pnpm dev` boots the Vite + Nitro hybrid on the **fixed port 3000** (see below).
 - Author in `src/lesson/**`. The runtime is a pinned `@faraday-academy/*` dependency, not
   vendored — there is no `src/faraday/**`; `faraday check` verifies the layout + exact pins.
 
