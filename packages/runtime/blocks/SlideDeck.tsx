@@ -1,11 +1,12 @@
 // <SlideDeck> — fullscreen slide view: one slide fills the viewport, hover toolbar
-// for navigation, optional overview canvas with ink. Title/lead from <Lecture>
-// become the opening slide — not fixed chrome above the deck.
+// for navigation, optional overview canvas with ink. The author supplies every
+// slide — including the opening title card (see slide-view skill).
 //
 //   <SlideDeck slides={[
+//     { id: "title", content: <TitleSlide /> },
 //     { id: "hook", title: "Hook", content: <HookSlide /> },
 //   ]} />
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import {
   CaretLeftIcon,
@@ -58,23 +59,7 @@ export function SlideDeck(props: {
   const lecture = useLecture();
   const course = useCourseNav();
   const inkKey = props.inkKey ?? lecture?.title ?? "slides";
-
-  const slides = useMemo(() => {
-    if (!lecture?.title) return props.slides;
-    const opener: Slide = {
-      id: "__lecture-title__",
-      title: lecture.title,
-      content: (
-        <div className="flex h-full flex-col justify-center gap-4 px-6 sm:px-12">
-          <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-5xl">{lecture.title}</h1>
-          {lecture.lead ? (
-            <p className="max-w-[52ch] text-lg text-muted-foreground text-pretty sm:text-xl">{lecture.lead}</p>
-          ) : null}
-        </div>
-      ),
-    };
-    return [opener, ...props.slides];
-  }, [props.slides, lecture?.title, lecture?.lead]);
+  const slides = props.slides;
 
   const [mode, setMode] = useState<DeckMode>("present");
   const [index, setIndex] = useState(0);
