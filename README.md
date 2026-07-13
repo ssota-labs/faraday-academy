@@ -309,7 +309,7 @@ faraday help
 
 **Capabilities are packs, not flags** — and `new` is **batteries-included**: it
 auto-installs all nine packs (skill + runtime), so `three` (`--physics` variant),
-`tutor`, `srs`, `exam`, `slide-view`, `kids`, `notes`, `lecture-design`, and `audience` are
+`tutor`, `srs`, `exam`, `slide-view`, `kids`, `notes`, `textbook-view`, `lecture-design`, and `audience` are
 on hand from the start (`faraday pack list` shows the live catalog). Use `--no-defaults`
 for a minimal lesson, and `faraday pack remove <name>` to drop what a finished lesson
 doesn't need (e.g. the heavy `three`/`tutor` runtimes). `faraday pack add <name|source>`

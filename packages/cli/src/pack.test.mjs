@@ -32,7 +32,7 @@ const exists = async (p) => !!(await fs.stat(p).catch(() => null));
 test("listPacks includes all shipped packs", async () => {
   const packs = await listPacks();
   const names = packs.map((p) => p.name);
-  for (const n of ["three", "tutor", "srs", "lecture-design", "audience", "exam", "slide-view", "kids", "notes", "map2d"]) {
+  for (const n of ["three", "tutor", "srs", "lecture-design", "audience", "exam", "slide-view", "textbook-view", "kids", "notes", "map2d"]) {
     assert.ok(names.includes(n), `expected a \`${n}\` pack`);
   }
   // every shipped pack must have a valid manifest
@@ -248,6 +248,17 @@ test("default packs: every capability pack is default, presentations are opt-in"
   const audFiles = await readPackSkill(aud.packDir, await readManifestAt(aud.packDir));
   assert.equal(audFiles.length, 1, "audience skill is a single file");
   assert.match(audFiles[0].content, /Audience/);
+});
+
+test("installPack(textbook-view) copies TextbookView, no new deps", async () => {
+  const target = await scaffold("Textbook Host");
+  const before = JSON.parse(await read(target, "package.json"));
+  await installPack("textbook-view", { fromDir: target });
+
+  assert.ok(await exists(path.join(target, "src/lesson/textbook-view/TextbookView.tsx")));
+  assert.ok(await exists(path.join(target, ".faraday/packs/textbook-view/pack.md")));
+  const after = JSON.parse(await read(target, "package.json"));
+  assert.deepEqual(after.dependencies, before.dependencies);
 });
 
 test("installPack(notes) copies the author-editable pen component, no new deps", async () => {

@@ -48,6 +48,7 @@ faraday pack add ./path | owner/repo | npm:@scope/pack   # third-party sources
 | `tutor` | the reader benefits from **asking questions** — a durable, grounded chat tutor beside the content. |
 | `srs` | the goal is **memorization/recall** (vocabulary, facts, formulas) — spaced-repetition flashcards. |
 | `exam` | a practice test / mock exam across a topic — blueprint → items → scoring. |
+| `textbook-view` | textbook view — A4 self-study column, scroll, free-mode margin notes. |
 | `slide-view` | slide view presentation — one idea per screen, prev/next, animation. (`deck` aliases here.) |
 | `kids` | a young-learner tablet lecture — CRA, big targets, celebration. |
 | `notes` | handwriting / sketch on a stylus — a full-page pen ink canvas. |
