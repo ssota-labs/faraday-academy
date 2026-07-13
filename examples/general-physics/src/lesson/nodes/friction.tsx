@@ -6,7 +6,7 @@ import {
   Callout, Derivation, Readout, NumericAnswer, TeX,
 } from "@faraday-academy/runtime/blocks";
 import { useNode } from "@faraday-academy/runtime/world";
-import { useRafLoop, useSvgDrag } from "@faraday-academy/runtime/runtime";
+import { useSimLoop, useSvgDrag } from "../sim2d";
 
 const W = 560;
 const H = 210;
@@ -31,7 +31,7 @@ export default function Friction() {
   const maxStatic = muS * N;
   const fKinetic = muK * N;
 
-  useRafLoop((dt) => {
+  useSimLoop((dt) => {
     const s = st.current;
     const fk = s.muK * N;
     const maxS = s.muS * N;

@@ -7,7 +7,7 @@ import {
 } from "@faraday-academy/runtime/blocks";
 import { Button } from "@faraday-academy/runtime/ui/button";
 import { useNode } from "@faraday-academy/runtime/world";
-import { useRafLoop } from "@faraday-academy/runtime/runtime";
+import { useSimLoop } from "../sim2d";
 
 const TRACK_M = 40;
 const W = 560;
@@ -44,7 +44,7 @@ export default function FirstLaw() {
   vRef.current = v;
   xRef.current = xM;
 
-  useRafLoop((dt) => {
+  useSimLoop((dt) => {
     let nv = vRef.current;
     if (friction && nv > 0) nv = Math.max(0, nv - MU_K_G * dt);
     if (nv <= 0) return;

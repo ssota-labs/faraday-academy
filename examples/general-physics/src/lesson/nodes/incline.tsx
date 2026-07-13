@@ -7,7 +7,7 @@ import {
   Callout, Derivation, Readout, Challenge, Quiz, TeX,
 } from "@faraday-academy/runtime/blocks";
 import { useNode } from "@faraday-academy/runtime/world";
-import { useRafLoop, useSvgDrag } from "@faraday-academy/runtime/runtime";
+import { useSimLoop, useSvgDrag } from "../sim2d";
 
 const W = 560;
 const H = 300;
@@ -40,7 +40,7 @@ export default function Incline() {
   const maxStatic = muS * normal;
   const frictionMag = sliding ? muK * normal : Math.min(driving, maxStatic);
 
-  useRafLoop((dt) => {
+  useSimLoop((dt) => {
     const s = st.current;
     const th = rad(s.theta);
     const slip = s.theta > (Math.atan(s.muS) * 180) / Math.PI + 0.05;

@@ -7,7 +7,7 @@ import {
 } from "@faraday-academy/runtime/blocks";
 import { Button } from "@faraday-academy/runtime/ui/button";
 import { useNode } from "@faraday-academy/runtime/world";
-import { useRafLoop } from "@faraday-academy/runtime/runtime";
+import { useSimLoop } from "../sim2d";
 
 const W = 560;
 const H = 200;
@@ -27,7 +27,7 @@ export default function ThirdLaw() {
   const st = useRef({ xA: -1.4, xB: 1.4, vA: 0, vB: 0 });
   st.current = { xA, xB, vA, vB };
 
-  useRafLoop((dt) => {
+  useSimLoop((dt) => {
     const s = st.current;
     if (s.vA === 0 && s.vB === 0) return;
     const nxA = s.xA + s.vA * dt;

@@ -7,7 +7,7 @@ import {
 } from "@faraday-academy/runtime/blocks";
 import { Button } from "@faraday-academy/runtime/ui/button";
 import { useNode } from "@faraday-academy/runtime/world";
-import { useRafLoop, useSvgDrag } from "@faraday-academy/runtime/runtime";
+import { useSimLoop, useSvgDrag } from "../sim2d";
 
 const TRACK_M = 60;
 const W = 560;
@@ -29,7 +29,7 @@ export default function SecondLaw() {
 
   const a = force / mass;
 
-  useRafLoop((dt) => {
+  useSimLoop((dt) => {
     const nv = vRef.current + a * dt;
     const np = pRef.current + nv * dt;
     if (np >= TRACK_M || np <= 0) { setPlaying(false); return; }
