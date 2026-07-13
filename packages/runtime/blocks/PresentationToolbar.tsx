@@ -20,27 +20,23 @@ export function PresentationToolbar(props: {
       onBlurCapture={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOpen(false);
       }}
+      onClick={() => setOpen((v) => !v)}
     >
       <div
         className={cn(
-          "pointer-events-none absolute inset-x-0 bottom-4 flex justify-center px-4 transition duration-200",
+          "absolute inset-x-0 bottom-4 flex justify-center px-4 transition duration-200",
           show ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0",
         )}
       >
         <div
-          className="pointer-events-auto flex max-w-full flex-wrap items-center justify-center gap-1.5 rounded-full border border-border/70 bg-background/92 px-3 py-2 shadow-lg backdrop-blur-md"
+          className="flex max-w-full flex-wrap items-center justify-center gap-1.5 rounded-full border border-border/70 bg-background/92 px-3 py-2 shadow-lg backdrop-blur-md"
           role="toolbar"
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
         >
           {props.children}
         </div>
       </div>
-      <button
-        type="button"
-        aria-label="Show presentation controls"
-        className="absolute inset-x-0 bottom-0 h-full w-full cursor-default bg-transparent"
-        onClick={() => setOpen((v) => !v)}
-        tabIndex={-1}
-      />
     </div>
   );
 }
