@@ -24,9 +24,10 @@ when the task matches the description above.
 
 | Phase | Do | Reference |
 |---|---|---|
-| **Discover** | Take in the creator's material (PDF/PPT/MD/notes) or **ask for it**; ask the few questions that shape everything (audience, level, goal, scope). **Audience is a gate** — pin who the learner is (or state the assumption), then teach *their* way. | [references/discovery.md](references/discovery.md) · [references/audience.md](references/audience.md) |
+| **Discover** | Take in the creator's material (PDF/PPT/MD/notes) or **ask for it**; ask the few questions that shape everything (audience, level, goal, scope). **Audience is a gate** — pin who the learner is (or state the assumption), then teach *their* way. | [references/discovery.md](references/discovery.md) · `audience` pack (`faraday pack show audience`) |
 | **Curriculum** | Decompose the subject into units, sequence by dependency, split/merge, and propose a **roadmap** for sign-off before building. | [references/curriculum.md](references/curriculum.md) |
 | **Learning path** | Turn the roadmap into a progression — levels, unlock gates, mastery checks, continuity — so learners keep going. | [references/learning-design.md](references/learning-design.md) |
+| **Plan & Execute** | For a multi-lesson curriculum (a long-running task): persist the signed-off roadmap to `.faraday/plan/`, then build lesson-by-lesson with an isolated sub-agent per node, resuming from the plan on any reset. Scaffold (`init`/`new`) **first** so design can read packs. | [references/orchestration.md](references/orchestration.md) |
 | **Interactive** | For each concept, design the *interaction* that reveals it (what the learner manipulates, what must visibly change) before touching the API. | [references/interactive-design.md](references/interactive-design.md) |
 | **Assess** | Pick each check's FORM by the outcome verb (recognize→MCQ, compute→numeric input, predict→sketch, do→mission) and place them in the concept→sim→check flow. | [references/assessment.md](references/assessment.md) |
 | **Visual** | Make it clear and polished within the theme system — hierarchy, restraint, mood. | [references/design.md](references/design.md) |
@@ -39,12 +40,15 @@ do **Discover** (even a 30-second version) so you build the right thing, and alw
 
 **Methodology:** if the creator has their own teaching method, it leads. If not,
 apply the evidence-based default — backward design, mastery-gated prerequisite
-graph, generative interactions, spaced retrieval, feed-forward feedback — in
-[references/pedagogy.md](references/pedagogy.md), and layer the **audience
-default** on top: one methodology per learner population (CRA for children, 5E
-for secondary, Peer Instruction for undergrads, Mayer's principles for the
-general public, Merrill's First Principles for professionals) in
-[references/audience.md](references/audience.md).
+graph, generative interactions, spaced retrieval, feed-forward feedback — from the
+**`lecture-design` pack**, and layer the **audience default** on top: one
+methodology per learner population (CRA for children, 5E for secondary, Peer
+Instruction for undergrads, Mayer's principles for the general public, Merrill's
+First Principles for professionals) from the **`audience` pack**. Every pack is a
+**default pack** — `faraday new` is batteries-included and auto-installs all nine
+(read them at `.faraday/packs/<name>/`; `faraday pack show <name>` at design time).
+Drop the ones a finished lesson doesn't need with `faraday pack remove <name>`
+(e.g. the heavy `three`/`tutor` runtimes) before shipping.
 
 ## The one rule that governs everything: two zones
 
@@ -71,12 +75,17 @@ dir, next steps). Exit codes: `0` ok · `1` check failed · `2` usage · `4` env
 
 ## The build loop
 
-1. **Scaffold.** `new` is batteries-included — it auto-installs all nine packs (skill
-   + runtime), so every capability is already on hand (see the decision guide below):
-   `npx @faraday-academy/cli@latest new <name> [--json]`
-   (installs deps unless `--skip-install`). `cd` into the new dir, then, before
-   shipping, `faraday pack remove <name>` any packs the topic doesn't use (especially
-   the heavy `three`/`tutor` runtimes).
+1. **Scaffold.** `faraday new` is batteries-included — it auto-installs all nine
+   packs (skill + runtime), so every capability is already on hand; there are no
+   capability flags: `npx @faraday-academy/cli@latest new <name> [--json]` (installs
+   deps unless `--skip-install`), then `cd` in. Use the decision guide below to know
+   which packs the subject actually uses; before shipping, `faraday pack remove <name>`
+   the ones it doesn't (especially the heavy `three`/`tutor` runtimes).
+   **Starting a whole course/repo?** Use `faraday init <first-app>` — it drops a repo
+   `AGENTS.md` and scaffolds the first app at `apps/<first-app>/`; add more apps later
+   with `faraday new <name>` from the repo root. Each app is one independent project =
+   one curriculum; scaffolding first is what makes the design-time packs available
+   (see [references/orchestration.md](references/orchestration.md)).
 2. **Read the in-project guide** — the scaffold ships `AGENTS.md` and
    `docs/authoring.md`; the block API also lives in [references/blocks.md](references/blocks.md).
    Start from a `docs/examples/*.tsx` when one fits (stepped, continuous, course,
@@ -134,24 +143,28 @@ math in `<TeX>`). Grade each MUST pass/fail before reporting done.
 
 ## Decision guide — which packs a lesson uses
 
-`faraday new` is batteries-included: it pre-installs all nine packs. You don't *add*
-capabilities — you **use** the ones that fit and `faraday pack remove <name>` the rest
-(there are no flags):
+`faraday new` pre-installs all nine packs (batteries-included), so you don't *add*
+capabilities — you **use** the ones that fit and `faraday pack remove <name>` the
+rest (there are no flags). Run `faraday pack list` for the live catalog and see
+[references/packs.md](references/packs.md). Map the creator's intent to a pack:
 
 - **plain 2D** — diagrams, charts, algorithm walk-throughs, parameter exploration.
   Uses no capability pack; trim the heavy runtimes. The right default for most topics.
 - **`three`** — the subject is inherently spatial (astronomy, molecules, geometry,
   anatomy). R3F `<Scene3D>`. Domain scenes **must** set a `mood`.
-- **`three --physics`** — genuine dynamics: collisions, gravity, stacking, joints.
-  The rapier variant isn't in the base install — add it with `faraday pack add three
-  --physics`. For scripted motion (orbits) use the render loop, not physics.
+- **`three --physics`** — genuine dynamics: collisions, gravity, stacking, joints
+  (implies 3D). The rapier variant isn't in the base install — add it with
+  `faraday pack add three --physics`. For scripted motion (orbits) use the render loop.
 - **`tutor`** — the reader benefits from asking questions. A durable, grounded chat
   tutor. Needs `AI_GATEWAY_API_KEY` locally. See [references/tutor.md](references/tutor.md).
-- **Other packs** — `srs`, `exam`, `deck`, `kids`, `notes`, `lecture-design` are all
-  pre-installed; `faraday pack remove <name>` what a lesson doesn't use.
-- **Single lesson vs. course vs. world** — one idea → one `<Lesson>`; a sequence →
+- **other packs** — memorization (`srs`), exams (`exam`), slideshows (`deck`), kids
+  (`kids`), pen notes (`notes`), pedagogy (`lecture-design`). All pre-installed;
+  `faraday pack remove <name>` what a lesson doesn't use.
+- **Single lesson vs. course vs. curriculum** — one idea → one `<Lesson>`; a sequence →
   `<Course>`; a graph with unlock progression / a roadmap map → `<CurriculumHost>` +
-  a pack. Design this in the Curriculum phase, build it per [references/worlds.md](references/worlds.md).
+  a **presentation**: built-in `linearPack`, or install one — `faraday pack add map2d`
+  (2D map), or the `three` pack's `world3dPack` (3D). Design this in the Curriculum
+  phase, build it per [references/worlds.md](references/worlds.md).
 
 ## Styling (non-negotiable baseline)
 
@@ -165,17 +178,19 @@ visual/UX design (hierarchy, layout, mood, polish), see [references/design.md](r
 
 Design phase:
 - [references/discovery.md](references/discovery.md) — intake creator material (PDF/PPT/MD) + the questions to ask.
-- [references/audience.md](references/audience.md) — who the learner is → the default delivery methodology per audience (creator's own overrides).
+- **`audience` pack** (default; `faraday pack show audience` or `.faraday/packs/audience/`) — who the learner is → the delivery methodology per audience (creator's own overrides).
 - [references/assessment.md](references/assessment.md) — the five check forms (MCQ / numeric / sketch / mission / tutor-graded), matched to outcome verbs + audience.
-- [references/pedagogy.md](references/pedagogy.md) — the evidence-based default methodology (creator's own overrides).
+- **`lecture-design` pack** (default; `faraday pack show lecture-design` or `.faraday/packs/lecture-design/`) — the evidence-based default methodology + named methods (creator's own overrides).
 - [references/curriculum.md](references/curriculum.md) — decompose a subject → sequenced roadmap.
+- [references/orchestration.md](references/orchestration.md) — build a whole curriculum as a long-running task: persist the plan, one sub-agent per lesson, resume.
 - [references/learning-design.md](references/learning-design.md) — levels, unlock gates, mastery, continuity.
 - [references/interactive-design.md](references/interactive-design.md) — design the interaction that reveals a concept.
 - [references/design.md](references/design.md) — visual/UX design within the theme system.
 
 Build API:
+- [references/packs.md](references/packs.md) — module packs: discover with `faraday pack list`, install with `faraday pack add`, read `.faraday/packs/<name>/`.
 - [references/blocks.md](references/blocks.md) — the full block API + canonical lesson shapes.
-- [references/worlds.md](references/worlds.md) — `<Course>`, `<CurriculumHost>`, packs, 3D moods, LMS.
+- [references/worlds.md](references/worlds.md) — `<Course>`, `<CurriculumHost>`, **world packs** (presentation shapes), 3D moods, LMS.
 - [references/tutor.md](references/tutor.md) — embed + ground the `tutor` pack AI, edit its persona/model.
 - [references/authoring-packs.md](references/authoring-packs.md) — **build a new pack**: the contract, the three archetypes, `faraday pack new`, the skill/quality skeleton, the eval loop.
 

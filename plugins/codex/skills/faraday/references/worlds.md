@@ -1,4 +1,19 @@
-# Courses, worlds, 3D, LMS
+# Curriculum presentations (courses, worlds), 3D, LMS
+
+**The base concept is the *curriculum*** — a set of lessons, optionally with a
+prerequisite graph. How you *present* it is a separate, swappable choice:
+
+- **`<Course>`** — a linear textbook (chapters, prev/next). The simplest presentation.
+- **`<CurriculumHost>` + a presentation** — a graph with unlock progression. The
+  presentation is the *shape*, and you **install the one you want as a pack** (except
+  the built-in fallback):
+  - `linearPack` — document-style list. Built into the runtime (`@faraday-academy/runtime/world`); always available.
+  - `map2d` — 2D map / game screen. `faraday pack add map2d`, then `import { map2dPack } from "./map2d"`.
+  - `world3d` — 3D constellation. Comes with the `three` pack; `import { world3dPack } from "@faraday-academy/three"`.
+
+  Swap presentations by swapping the `pack` prop — the content doesn't change.
+  **"World" is just the immersive (game-screen) family of presentations — not a
+  synonym for the curriculum.**
 
 ## `<Course>` — linear textbook
 
@@ -26,9 +41,9 @@ owns progress, the world↔lesson toggle, the HUD, and an event stream for
 LMS/tutor hooks. The *shape* of the world is a swappable **pack**
 (ports-and-adapters) — change one prop, keep the content:
 
-- `linearPack` — status list (doc-style, renders inline). `@faraday-academy/runtime/world`
-- `map2dPack` — 2D tactical node map (**game screen**). `@faraday-academy/runtime/world`
-- `world3dPack` — 3D open-world constellation (**game screen**, needs the `three` pack). `@faraday-academy/three`
+- `linearPack` — status list (doc-style, renders inline). Built-in: `@faraday-academy/runtime/world`
+- `map2dPack` — 2D tactical node map (**game screen**). Pack: `faraday pack add map2d` → `import from "./map2d"`
+- `world3dPack` — 3D open-world constellation (**game screen**). From the `three` pack: `@faraday-academy/three`
 
 **Game packs are immersive.** The host mounts the world as a full-viewport game
 screen — no page header, no reading column — and overlays a game HUD: a status
@@ -41,7 +56,9 @@ inline (small map embedded in a page); `hint="…"` overrides the HUD hint. Do
 **not** wrap an immersive world in `<Lesson>`/prose — the world IS the screen.
 
 ```tsx
-import { CurriculumHost, map2dPack, type Curriculum } from "@faraday-academy/runtime/world";
+// `faraday pack add map2d` first — it copies the presentation to src/lesson/map2d/.
+import { CurriculumHost, type Curriculum } from "@faraday-academy/runtime/world";
+import { map2dPack } from "./map2d";
 // Module scope — REQUIRED. Recreating this object inside the component resets progress.
 const curriculum: Curriculum = { title: "…", nodes: [
   { id: "a", title: "A", meta: { x: 15, y: 50 }, lesson: <LessonA /> },

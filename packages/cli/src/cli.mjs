@@ -6,13 +6,20 @@ import fs from "node:fs/promises";
 import spawn from "node:child_process";
 import { generateLesson } from "./generate.mjs";
 import { sanitizePackageName } from "./pkg.mjs";
-import { findLessonRoot, collectFindings, managedDeps } from "./doctor.mjs";
+import { findLessonRoot, collectFindings, managedDeps, exists } from "./doctor.mjs";
 import { listPacks, installPack, removePack, resolvePack, readManifestAt, validatePackDir, readPackSkill, scaffoldPack } from "./pack.mjs";
 
 const HELP = `faraday — scaffold AI-authored interactive lessons (shadcn-based)
 
 Usage:
+  faraday init <first-app> [--at <repo-dir>] [--no-defaults] [--overwrite] [--skip-install] [--json]
+                                        start a courseware repo: drop a root AGENTS.md
+                                        and scaffold the first app at apps/<first-app>/.
+                                        Run once; then \`faraday new\` to add more apps.
   faraday new <name> [--no-defaults] [--at <dir>] [--overwrite] [--skip-install] [--json]
+                                        add one app (an independent vite project). Inside
+                                        a repo (a dir with apps/), it lands at apps/<name>/;
+                                        elsewhere it scaffolds <name>/ standalone.
   faraday check [--dir <lesson>]        verify the lesson layout + runtime pin
   faraday doctor [--dir <lesson>]       deep check (layout + pin + installed lockfile)
   faraday upgrade [--to <ver>] [--dir <lesson>]
@@ -84,6 +91,7 @@ export async function runFaradayCli(argv, rawContext = {}) {
       context.stdout(HELP + "\n");
       return;
     }
+    if (command === "init") return await runInit(rest, context);
     if (command === "new") return await runNew(rest, context);
     if (command === "check") return await runCheck(rest, context);
     if (command === "doctor") return await runDoctor(rest, context);
@@ -118,12 +126,72 @@ function parseNewArgs(argv) {
   return opts;
 }
 
-async function runNew(argv, context) {
-  const opts = parseNewArgs(argv);
+// A faraday courseware repo has an `apps/` directory (created by `faraday init`).
+// When `new` runs at such a root, apps land under it; otherwise `new` stays
+// standalone (backward-compatible: <name>/ at cwd).
+async function workspaceAppsDir(cwd) {
+  const appsDir = path.join(cwd, "apps");
+  return (await exists(appsDir)) ? appsDir : null;
+}
+
+const WORKSPACE_AGENTS_MD = `# AGENTS.md — Faraday courseware repo
+
+This repository holds **one or more independent Faraday apps** under \`apps/\`. Each
+app is a self-contained Vite + React project — its own \`package.json\`, dev server,
+and build — that presents **one curriculum** (a domain/audience: e.g. \`general-physics\`
+for undergrads vs \`elementary-physics\` for kids). Apps do **not** import or iframe
+each other; if they link, they link by URL.
+
+    apps/<app>/
+      .faraday/
+        packs/            # this app's packs (audience, pedagogy, + runtime packs)
+        plan/             # curriculum build plans — one folder per plan
+      src/lesson/
+        lesson.tsx        # fixed entry: the module-scope \`curriculum\` assembly
+        nodes/<id>.tsx    # one file per lesson node (file-isolated)
+
+## Working here
+
+- **Add an app:** \`faraday new <name>\` → scaffolds \`apps/<name>/\`.
+- **Design & build a curriculum** inside an app: read the app's \`AGENTS.md\`, pin the
+  audience, then plan in \`apps/<app>/.faraday/plan/<plan>/\` before authoring lessons.
+  See \`references/orchestration.md\` in the faraday skill for the plan→build loop.
+- **One idea per lesson node**, one file per node under \`src/lesson/nodes/\`. Keep the
+  \`curriculum\` object at module scope in \`lesson.tsx\` (progress is keyed on its identity).
+- **Verify per app:** \`cd apps/<app> && pnpm check && pnpm dev\`.
+`;
+
+function parseInitArgs(argv) {
+  const opts = { name: undefined, at: undefined, overwrite: false, skipInstall: false, json: false, noDefaults: false };
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    if (arg === "--at") opts.at = argv[++i];
+    else if (arg === "--overwrite") opts.overwrite = true;
+    else if (arg === "--skip-install") opts.skipInstall = true;
+    else if (arg === "--json") opts.json = true;
+    else if (arg === "--no-defaults") opts.noDefaults = true;
+    else if (arg.startsWith("-")) { const e = new Error(`Unknown flag: ${arg}`); e.exitCode = 2; throw e; }
+    else if (opts.name === undefined) opts.name = arg;
+    else { const e = new Error(`Unexpected argument: ${arg}`); e.exitCode = 2; throw e; }
+  }
+  if (!opts.name) { const e = new Error("init requires a <first-app> name"); e.exitCode = 2; throw e; }
+  if (opts.at !== undefined && !opts.at) { const e = new Error("--at requires a value"); e.exitCode = 2; throw e; }
+  return opts;
+}
+
+async function runInit(argv, context) {
+  const opts = parseInitArgs(argv);
+  const repoRoot = opts.at ? path.resolve(context.cwd, opts.at) : context.cwd;
+  await fs.mkdir(repoRoot, { recursive: true });
+
+  // Root contract for the repo. Don't clobber an existing one unless --overwrite.
+  const agentsPath = path.join(repoRoot, "AGENTS.md");
+  if (opts.overwrite || !(await exists(agentsPath))) {
+    await fs.writeFile(agentsPath, WORKSPACE_AGENTS_MD);
+  }
+
   const dirName = sanitizePackageName(opts.name).split("/").pop();
-  const targetDir = opts.at
-    ? path.resolve(context.cwd, opts.at)
-    : path.resolve(context.cwd, dirName);
+  const targetDir = path.join(repoRoot, "apps", dirName);
 
   const result = await generateLesson({
     targetDir,
@@ -133,19 +201,61 @@ async function runNew(argv, context) {
     uuid: context.uuid,
   });
 
-  const skip = opts.skipInstall || context.env.FARADAY_SKIP_INSTALL === "1";
-  let installed = false;
-  if (!skip) {
-    try {
-      const installStdio = opts.json ? ["ignore", "ignore", "inherit"] : "inherit";
-      await context.runCommand("pnpm", ["install"], { cwd: targetDir, stdio: installStdio });
-      installed = true;
-    } catch (error) {
-      const e = new Error(`pnpm install failed: ${error.message}`);
-      e.exitCode = 4;
-      throw e;
-    }
+  const installed = await installLessonDeps(targetDir, opts, context);
+
+  const relRepo = path.relative(context.cwd, repoRoot) || ".";
+  const relApp = path.relative(context.cwd, targetDir) || ".";
+  if (opts.json) {
+    context.stdout(JSON.stringify({
+      ok: true, command: "init", repo: repoRoot, title: result.title,
+      packageName: result.packageName, app: targetDir, installed,
+      nextSteps: [`cd ${relApp}`, ...(installed ? [] : ["pnpm install"]), "pnpm dev", `# add more apps: faraday new <name> (from ${relRepo}/)`],
+    }, null, 2) + "\n");
+  } else {
+    context.stdout(
+      `\n  Initialized a Faraday courseware repo in ${relRepo}/\n` +
+      `  Root AGENTS.md written · first app ${result.title} at ${relApp}/\n\n` +
+      `  Next:\n    cd ${relApp}\n${installed ? "" : "    pnpm install\n"}    pnpm dev\n\n` +
+      `  Add more apps from the repo root:\n    faraday new <name>   # → apps/<name>/\n`,
+    );
   }
+}
+
+// Shared install step for new/init. Returns whether install ran.
+async function installLessonDeps(targetDir, opts, context) {
+  const skip = opts.skipInstall || context.env.FARADAY_SKIP_INSTALL === "1";
+  if (skip) return false;
+  try {
+    const installStdio = opts.json ? ["ignore", "ignore", "inherit"] : "inherit";
+    await context.runCommand("pnpm", ["install"], { cwd: targetDir, stdio: installStdio });
+    return true;
+  } catch (error) {
+    const e = new Error(`pnpm install failed: ${error.message}`);
+    e.exitCode = 4;
+    throw e;
+  }
+}
+
+async function runNew(argv, context) {
+  const opts = parseNewArgs(argv);
+  const dirName = sanitizePackageName(opts.name).split("/").pop();
+  let targetDir;
+  if (opts.at) {
+    targetDir = path.resolve(context.cwd, opts.at);
+  } else {
+    const appsDir = await workspaceAppsDir(context.cwd);
+    targetDir = appsDir ? path.join(appsDir, dirName) : path.resolve(context.cwd, dirName);
+  }
+
+  const result = await generateLesson({
+    targetDir,
+    name: opts.name,
+    force: opts.overwrite,
+    noDefaults: opts.noDefaults,
+    uuid: context.uuid,
+  });
+
+  const installed = await installLessonDeps(targetDir, opts, context);
 
   const rel = path.relative(context.cwd, targetDir) || ".";
   if (opts.json) {
@@ -224,6 +334,7 @@ async function runPackList(argv, context) {
         name: p.name,
         displayName: p.displayName ?? "",
         description: p.description ?? "",
+        category: p.category ?? null,
         variants: Object.keys(p.runtime?.variants ?? {}),
         default: p.default ?? false,
       })),
@@ -236,11 +347,30 @@ async function runPackList(argv, context) {
     context.stdout("No packs available.\n");
     return;
   }
-  context.stdout("Available packs:\n");
+  // Group by category for a readable catalog. Known categories lead in a sensible
+  // order; anything else (incl. uncategorized) falls to the end.
+  const ORDER = ["curriculum", "component", "runtime", "assessment", "methodology"];
+  const groups = new Map();
   for (const p of packs) {
-    const variants = Object.keys(p.runtime?.variants ?? {});
-    const suffix = variants.length ? ` (variants: ${variants.join(", ")})` : "";
-    context.stdout(`  ${p.name} — ${p.displayName ?? ""}${suffix}\n`);
+    const key = p.category ?? "other";
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(p);
+  }
+  const keys = [...groups.keys()].sort((a, b) => {
+    const ia = ORDER.indexOf(a), ib = ORDER.indexOf(b);
+    return (ia === -1 ? ORDER.length : ia) - (ib === -1 ? ORDER.length : ib) || a.localeCompare(b);
+  });
+  context.stdout("Available packs:\n");
+  for (const key of keys) {
+    context.stdout(`\n  ${key}\n`);
+    for (const p of groups.get(key)) {
+      const variants = Object.keys(p.runtime?.variants ?? {});
+      const bits = [];
+      if (variants.length) bits.push(`variants: ${variants.join(", ")}`);
+      if (p.default === false) bits.push("opt-in");
+      const suffix = bits.length ? ` (${bits.join("; ")})` : "";
+      context.stdout(`    ${p.name} — ${p.displayName ?? ""}${suffix}\n`);
+    }
   }
 }
 
