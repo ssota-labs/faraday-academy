@@ -1,6 +1,8 @@
 // Hover-reveal toolbar for fullscreen presentation views (slides, textbook).
+// On touch devices the bar stays visible — no hover on tablets.
 import { useState, type ReactNode } from "react";
 import { cn } from "../lib/utils";
+import { useCoarsePointer } from "./use-coarse-pointer";
 
 export function PresentationToolbar(props: {
   children: ReactNode;
@@ -8,19 +10,20 @@ export function PresentationToolbar(props: {
   /** Pin the bar visible (e.g. while a menu is open). */
   pinned?: boolean;
 }) {
+  const coarse = useCoarsePointer();
   const [open, setOpen] = useState(false);
-  const show = props.pinned || open;
+  const show = props.pinned || open || coarse;
 
   return (
     <div
       className={cn("fixed inset-x-0 bottom-0 z-50 h-24", props.className)}
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      onMouseEnter={() => !coarse && setOpen(true)}
+      onMouseLeave={() => !coarse && setOpen(false)}
       onFocusCapture={() => setOpen(true)}
       onBlurCapture={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOpen(false);
+        if (!coarse && !e.currentTarget.contains(e.relatedTarget as Node | null)) setOpen(false);
       }}
-      onClick={() => setOpen((v) => !v)}
+      onClick={() => !coarse && setOpen((v) => !v)}
     >
       <div
         className={cn(

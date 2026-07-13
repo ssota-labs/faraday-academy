@@ -11,12 +11,15 @@ import {
   defaultInkSize,
   INK_COLORS,
 } from "./ink";
+import { useCoarsePointer } from "./use-coarse-pointer";
 
 export function SlideInkLayer(props: { inkKey: string; active: boolean; onDone?: () => void }) {
+  const coarse = useCoarsePointer();
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const strokesRef = useRef<InkStroke[]>([]);
   const currentRef = useRef<InkStroke | null>(null);
+  const penCountRef = useRef(0);
 
   const [tool, setTool] = useState<InkTool>("pen");
   const [color, setColor] = useState(INK_COLORS[0]);
@@ -62,9 +65,17 @@ export function SlideInkLayer(props: { inkKey: string; active: boolean; onDone?:
     };
   }
 
+  function acceptsPointer(e: React.PointerEvent): boolean {
+    if (!props.active) return false;
+    if (e.button !== 0) return false;
+    if (e.pointerType === "touch" && penCountRef.current > 0) return false;
+    if (coarse && e.pointerType === "touch") return false;
+    return true;
+  }
+
   function onDown(e: React.PointerEvent) {
-    if (!props.active) return;
-    if (e.button !== 0) return;
+    if (!acceptsPointer(e)) return;
+    if (e.pointerType === "pen") penCountRef.current += 1;
     (e.currentTarget as Element).setPointerCapture(e.pointerId);
     currentRef.current = { tool, color, size, points: [point(e)] };
   }
@@ -79,7 +90,8 @@ export function SlideInkLayer(props: { inkKey: string; active: boolean; onDone?:
     }
   }
 
-  function onUp() {
+  function onUp(e: React.PointerEvent) {
+    if (e.pointerType === "pen") penCountRef.current = Math.max(0, penCountRef.current - 1);
     const cur = currentRef.current;
     if (!cur) return;
     if (cur.points.length > 1) {

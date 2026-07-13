@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { cn } from "../lib/utils";
+import { clientDistance, clientMidpoint, pinchZoomAtMidpoint } from "./canvas-gestures";
 import { InkToolbar, type InkToolbarMode } from "./InkToolbar";
 import {
   drawInkStroke,
@@ -14,6 +15,7 @@ import {
   defaultInkSize,
   INK_COLORS,
 } from "./ink";
+import { useCoarsePointer } from "./use-coarse-pointer";
 
 export interface CanvasItem {
   id: string;
@@ -30,6 +32,21 @@ const LAYOUTS: Record<
   landscape: { cardW: 360, cardH: 220, gap: 140, previewScale: 0.42, previewWidth: "238%" },
   "portrait-9-16": { cardW: 243, cardH: 432, gap: 140, previewScale: 0.36, previewWidth: "278%" },
 };
+
+interface TrackedPointer {
+  x: number;
+  y: number;
+  type: string;
+}
+
+interface PinchSession {
+  startDist: number;
+  startZoom: number;
+  startPanX: number;
+  startPanY: number;
+  lastMidX: number;
+  lastMidY: number;
+}
 
 function gridLayout(count: number, cardW: number, cardH: number, gap: number) {
   const cols = Math.max(1, Math.ceil(Math.sqrt(count)));
@@ -50,6 +67,7 @@ export function PresentationCanvas(props: {
   const layout = LAYOUTS[props.cardLayout ?? "landscape"];
   const { cardW, cardH, gap, previewScale, previewWidth } = layout;
   const { items, inkKey } = props;
+  const coarse = useCoarsePointer();
 
   const positions = useMemo(() => gridLayout(items.length, cardW, cardH, gap), [items.length, cardW, cardH, gap]);
   const worldW = useMemo(() => {
@@ -69,6 +87,9 @@ export function PresentationCanvas(props: {
   const panRef = useRef({ x: 0, y: 0 });
   const zoomRef = useRef(1);
   const dragRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
+  const pointersRef = useRef(new Map<number, TrackedPointer>());
+  const pinchRef = useRef<PinchSession | null>(null);
+  const penCountRef = useRef(0);
 
   const [tool, setTool] = useState<InkTool>("pen");
   const [color, setColor] = useState(INK_COLORS[0]);
@@ -115,6 +136,70 @@ export function PresentationCanvas(props: {
     bump((n) => n + 1);
   }
 
+  function cancelStroke() {
+    currentRef.current = null;
+    dragRef.current = null;
+  }
+
+  function beginPinch() {
+    const pts = [...pointersRef.current.values()];
+    if (pts.length < 2) return;
+    const dist = clientDistance(pts[0], pts[1]);
+    const mid = clientMidpoint(pts[0], pts[1]);
+    pinchRef.current = {
+      startDist: dist,
+      startZoom: zoomRef.current,
+      startPanX: panRef.current.x,
+      startPanY: panRef.current.y,
+      lastMidX: mid.x,
+      lastMidY: mid.y,
+    };
+    cancelStroke();
+  }
+
+  function updatePinch() {
+    const session = pinchRef.current;
+    const el = viewportRef.current;
+    const pts = [...pointersRef.current.values()];
+    if (!session || !el || pts.length < 2) return;
+    const rect = el.getBoundingClientRect();
+    const dist = clientDistance(pts[0], pts[1]);
+    const mid = clientMidpoint(pts[0], pts[1]);
+    const zoomed = pinchZoomAtMidpoint({
+      rect,
+      startDist: session.startDist,
+      startZoom: session.startZoom,
+      startPanX: session.startPanX,
+      startPanY: session.startPanY,
+      dist,
+      mid,
+    });
+    panRef.current.x = zoomed.panX + (mid.x - session.lastMidX);
+    panRef.current.y = zoomed.panY + (mid.y - session.lastMidY);
+    zoomRef.current = zoomed.zoom;
+    session.lastMidX = mid.x;
+    session.lastMidY = mid.y;
+    applyTransform();
+  }
+
+  function shouldRejectTouch(pointerType: string): boolean {
+    return pointerType === "touch" && penCountRef.current > 0;
+  }
+
+  function shouldPanSingle(pointerType: string, button: number): boolean {
+    if (button === 1) return true;
+    if (mode === "pan") return true;
+    if (coarse && pointerType === "touch") return true;
+    return false;
+  }
+
+  function shouldDrawSingle(pointerType: string): boolean {
+    if (mode !== "draw") return false;
+    if (pointerType === "pen") return true;
+    if (coarse) return false;
+    return pointerType === "mouse";
+  }
+
   function onWheel(e: React.WheelEvent) {
     e.preventDefault();
     const el = viewportRef.current;
@@ -131,24 +216,50 @@ export function PresentationCanvas(props: {
   }
 
   function onPointerDown(e: React.PointerEvent) {
-    if (mode === "pan" || e.button === 1) {
-      dragRef.current = { x: e.clientX, y: e.clientY, panX: panRef.current.x, panY: panRef.current.y };
-      (e.currentTarget as Element).setPointerCapture(e.pointerId);
+    if (shouldRejectTouch(e.pointerType)) return;
+
+    if (e.pointerType === "pen") penCountRef.current += 1;
+
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY, type: e.pointerType });
+    (e.currentTarget as Element).setPointerCapture(e.pointerId);
+
+    if (pointersRef.current.size === 2) {
+      beginPinch();
       return;
     }
-    (e.currentTarget as Element).setPointerCapture(e.pointerId);
-    const p = worldPoint(e.clientX, e.clientY);
-    p.p = e.pressure > 0 ? e.pressure : 0.5;
-    currentRef.current = { tool, color, size, points: [p] };
+
+    if (pointersRef.current.size !== 1) return;
+
+    if (shouldPanSingle(e.pointerType, e.button)) {
+      dragRef.current = { x: e.clientX, y: e.clientY, panX: panRef.current.x, panY: panRef.current.y };
+      return;
+    }
+
+    if (shouldDrawSingle(e.pointerType)) {
+      const p = worldPoint(e.clientX, e.clientY);
+      p.p = e.pressure > 0 ? e.pressure : 0.5;
+      currentRef.current = { tool, color, size, points: [p] };
+    }
   }
 
   function onPointerMove(e: React.PointerEvent) {
+    const tracked = pointersRef.current.get(e.pointerId);
+    if (!tracked) return;
+    tracked.x = e.clientX;
+    tracked.y = e.clientY;
+
+    if (pointersRef.current.size >= 2) {
+      updatePinch();
+      return;
+    }
+
     if (dragRef.current) {
       panRef.current.x = dragRef.current.panX + (e.clientX - dragRef.current.x);
       panRef.current.y = dragRef.current.panY + (e.clientY - dragRef.current.y);
       applyTransform();
       return;
     }
+
     const cur = currentRef.current;
     if (!cur) return;
     const p = worldPoint(e.clientX, e.clientY);
@@ -160,15 +271,24 @@ export function PresentationCanvas(props: {
     }
   }
 
-  function onPointerUp() {
+  function onPointerUp(e: React.PointerEvent) {
+    if (e.pointerType === "pen") penCountRef.current = Math.max(0, penCountRef.current - 1);
+
+    pointersRef.current.delete(e.pointerId);
+    if (pointersRef.current.size < 2) pinchRef.current = null;
+    if (pointersRef.current.size === 1 && pointersRef.current.size > 0) {
+      // resumed single-pointer — don't auto-start stroke
+    }
+
     dragRef.current = null;
     const cur = currentRef.current;
-    if (!cur) return;
-    if (cur.points.length > 1) {
-      strokesRef.current = [...strokesRef.current, cur];
-      saveInk(`overview:${inkKey}`, strokesRef.current);
+    if (cur) {
+      if (cur.points.length > 1) {
+        strokesRef.current = [...strokesRef.current, cur];
+        saveInk(`overview:${inkKey}`, strokesRef.current);
+      }
+      currentRef.current = null;
     }
-    currentRef.current = null;
   }
 
   function undo() {
@@ -196,7 +316,7 @@ export function PresentationCanvas(props: {
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
         style={{
-          cursor: mode === "pan" ? "grab" : tool === "eraser" ? "cell" : "crosshair",
+          cursor: mode === "pan" || coarse ? "grab" : tool === "eraser" ? "cell" : "crosshair",
           backgroundImage:
             "radial-gradient(circle, color-mix(in oklab, var(--border) 55%, transparent) 1px, transparent 1px)",
           backgroundSize: `${24 * zoomRef.current}px ${24 * zoomRef.current}px`,

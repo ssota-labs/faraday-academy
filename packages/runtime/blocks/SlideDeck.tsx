@@ -105,8 +105,7 @@ export function SlideDeck(props: {
         </Button>
       </PresentationTopBar>
 
-      <div
-        className={cn("relative h-full min-h-0 overflow-y-auto px-4 py-6 sm:px-8 sm:py-10", PRESENTATION_TOP_PAD)}
+      <div className={cn("relative h-full min-h-0 overflow-y-auto overscroll-contain px-4 py-6 sm:px-8 sm:py-10", PRESENTATION_TOP_PAD)}
         key={slide.id}
         role="group"
         aria-label={`Slide ${index + 1} of ${slides.length}${slide.title ? `: ${slide.title}` : ""}`}
