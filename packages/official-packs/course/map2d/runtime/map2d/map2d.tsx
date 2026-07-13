@@ -6,7 +6,7 @@
 //
 // This ships as a COPY-IN pack: `faraday pack add map2d` copies it to
 // src/lesson/map2d/. It's yours to tweak (colors, node radius, layout). It plugs
-// into <CurriculumHost pack={map2dPack} /> — the host still owns progress/unlock.
+// into <CourseHost pack={map2dPack} /> — the host still owns progress/unlock.
 import type { WorldNode, WorldPack } from "@faraday-academy/runtime/world";
 
 const W = 720;

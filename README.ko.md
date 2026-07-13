@@ -162,7 +162,7 @@ flowchart LR
 
 | 미리보기 | 구성요소 | 하는 일 | 무엇으로 |
 |---|---|---|---|
-| ![커리큘럼 월드](docs/images/component-curriculum.png) | **📚 커리큘럼 / 월드** | 수업을 선형 교과서로, 또는 잠금 해제 진행이 있는 게임 같은 지도로 엮어 탐험합니다. | `<Course>` · `<CurriculumHost>` + 월드 팩 |
+| ![커리큘럼 월드](docs/images/component-curriculum.png) | **📚 커리큘럼 / 월드** | 수업을 선형 교과서로, 또는 잠금 해제 진행이 있는 게임 같은 지도로 엮어 탐험합니다. | `<Course>` · `<CourseHost>` + 월드 팩 |
 | ![슬라이드 뷰](docs/images/component-lecture.png) | **🎬 슬라이드 뷰** | 슬라이드 뷰 프레젠테이션 — 화면당 한 아이디어, 이전/다음, 애니메이션. | `<SlideDeck>` · `runtime/motion` · `slide-view` 팩 |
 | ![퀴즈/과제](docs/images/component-quiz.png) | **✅ 퀴즈 / 과제** | *가르치는* 확인 — 객관식, 숫자 입력, 스케치 예측, 시뮬레이션에서 클리어하는 미션. | `<Quiz>` · `<NumericAnswer>` · `<Challenge>` · `<SketchPad>` |
 | ![LMS 대시보드](docs/images/component-lms.png) | **📊 학생 관리** | 수업 또는 커리큘럼 전체의 진도를 기록하고 대시보드로 보여줍니다 (LMS). | `runtime/lms` (기록기 + 대시보드) |
@@ -199,7 +199,7 @@ AI, 멀티테넌시, 결제), 기능을 추가하지 않습니다. ([VISION.md](
 - **Physics** (`pack add three --physics`) — `@react-three/rapier`를 통한 Rapier 중력/충돌.
 - **Curriculum / world (커리큘럼 / 세계)** (`runtime/world`) — 여러 수업을 묶기:
   선형 교과서용 `<Course>`(챕터 내비게이션, 이전/다음, `#hash`), 또는 **잠금
-  해제 진행(unlock progression)**과 교체 가능한 **팩**을 가진 `<CurriculumHost>`
+  해제 진행(unlock progression)**과 교체 가능한 **팩**을 가진 `<CourseHost>`
   — `linearPack`(상태 목록), `map2dPack`(2D 노드 맵), `world3dPack`(3D 오픈월드 /
   RPG). 팩이 곧 세계 전체를 갈아끼우는 이음새입니다.
 - **LMS** (`runtime/lms`) — 수업이나 커리큘럼 전체에 붙는 진도 기록기 + 대시보드.

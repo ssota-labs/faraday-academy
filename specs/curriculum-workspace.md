@@ -80,7 +80,7 @@ module-scope여야 하는 건 `curriculum` **객체 리터럴**뿐(진행 상태
 - **코스 셸** = 코스 안 렉쳐 간 탐색 (`course/` 팩: `map2d`, `linear`). 렉쳐 **안**의 슬라이드·
   텍스트북 뷰와 혼동하지 않는다.
 - **팩 카테고리:** `course/` · `lecture/` · `runtime/` · `methodology/`.
-- **내부 배관(작가 안 보임):** `CourseHost`(구 `CurriculumHost`)가 진행·언락·상태를 소유하고,
+- **내부 배관(작가 안 보임):** `CourseHost`(구 `CourseHost`)가 진행·언락·상태를 소유하고,
   코스 셸 팩이 탐색 UI를 꽂는다.
 
 ## 6. 두 스킬 세트 동일화
@@ -96,7 +96,7 @@ audience.md/pedagogy.md는 제거하고 팩으로 통일).
 - **프레젠테이션 = 팩 (완료).** `map2d`를 base 런타임에서 빼고 **copy-in opt-in 팩**
   (`packages/official-packs/course/map2d/`)으로 분리했다. `faraday pack add map2d` →
   `src/lesson/map2d/`로 복사, `import { map2dPack } from "./map2d"`. `linearPack`은
-  런타임 내장 fallback으로 유지, `world3dPack`은 `three` 팩. 코어 `CurriculumHost` + port는
+  런타임 내장 fallback으로 유지, `world3dPack`은 `three` 팩. 코어 `CourseHost` + port는
   런타임 유지(배관). map2d는 default:false — 프레젠테이션은 하나만 고르는 opt-in이라
   batteries-included 9개 default에서 예외(테스트 `OPT_IN_PACKS`로 명문화). 작가용 문서
   (worlds.md/packs.md/SKILL.md)에서 프레젠테이션을 "설치하는 팩"으로 표현. labs는 프리뷰용

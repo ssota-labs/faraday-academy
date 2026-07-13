@@ -4,7 +4,7 @@ An exam without a blueprint drifts to whatever is easy to write (usually recall)
 Decide the **table of specifications** first: outcomes × cognitive level × weight →
 item count.
 
-- **List the outcomes** the exam certifies (reuse the curriculum's outcome verbs).
+- **List the outcomes** the exam certifies (reuse the course's outcome verbs).
 - **Weight them** by importance/time-taught, not by how easy they are to test. The
   weights should sum to 100%.
 - **Set the cognitive level** per outcome (remember / apply / analyze). Higher

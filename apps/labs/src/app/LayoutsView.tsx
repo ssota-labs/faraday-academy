@@ -2,7 +2,7 @@ import { useState, type ReactNode } from "react";
 import { DEMOS } from "@/stories";
 
 // Reference knowledge from the skill's audience.md — the reading-surface archetypes,
-// split by scope (a single lesson page vs a whole curriculum) and tagged with the
+// split by scope (a single lesson page vs a whole course) and tagged with the
 // audience each defaults to. Audience sets the default; the creator's request and
 // the content override it (explicitly NOT a 1:1 mapping).
 
@@ -78,7 +78,7 @@ const GROUPS: LayoutGroup[] = [
         id: "list",
         name: "Curriculum list",
         what: "A graph of lessons with unlock progression, rendered inline as a doc-style status list.",
-        build: "<CurriculumHost> + linearPack",
+        build: "<CourseHost> + linearPack",
         audiences: ["Professionals"],
         preview: DEMOS["host"]?.render(),
       },
@@ -86,7 +86,7 @@ const GROUPS: LayoutGroup[] = [
         id: "world",
         name: "Game world",
         what: "A full-viewport map / constellation with a HUD; lessons open per node. An immersive game screen.",
-        build: "<CurriculumHost> + map2dPack / world3dPack",
+        build: "<CourseHost> + map2dPack / world3dPack",
         audiences: ["Children"],
         preview: DEMOS["hud"]?.render(),
       },

@@ -159,10 +159,10 @@ teaching, and you compose them per lesson:
 
 | Preview | Component | What it does | Built from |
 |---|---|---|---|
-| ![Curriculum world](docs/images/component-curriculum.png) | **📚 Curriculum / world** | Order lessons into a linear textbook, or a game-like map with unlock progression you navigate. | `<Course>` · `<CurriculumHost>` + world packs |
+| ![Curriculum world](docs/images/component-curriculum.png) | **📚 Curriculum / world** | Order lessons into a linear textbook, or a game-like map with unlock progression you navigate. | `<Course>` · `<CourseHost>` + world packs |
 | ![Slide view](docs/images/component-lecture.png) | **🎬 Slide view** | Slide-view presentation — one idea per screen, prev/next, animation. | `<SlideDeck>` · `runtime/motion` · `slide-view` pack |
 | ![Quiz and assignment](docs/images/component-quiz.png) | **✅ Quiz / assignment** | Checks that *teach* — MCQ, typed numeric, sketch-to-predict, and missions cleared in the sim. | `<Quiz>` · `<NumericAnswer>` · `<Challenge>` · `<SketchPad>` |
-| ![LMS dashboard](docs/images/component-lms.png) | **📊 Student management** | Record progress and show a dashboard across a lesson or a whole curriculum (LMS). | `runtime/lms` (recorder + dashboard) |
+| ![LMS dashboard](docs/images/component-lms.png) | **📊 Student management** | Record progress and show a dashboard across a lesson or a whole course (LMS). | `runtime/lms` (recorder + dashboard) |
 | ![AI tutor](docs/images/component-tutor.png) | **🤖 AI tutor** | A grounded, Socratic chat that answers only from the lesson's own content. | `tutor` pack |
 
 <!-- 📸 component-*.png thumbnails — see docs/images/README.md. Broken icons above are placeholders until you drop the files in. -->
@@ -194,12 +194,12 @@ On top of the blocks:
   **Procedural-first, asset-fallback.**
 - **Physics** (`pack add three --physics`) — Rapier gravity/collision via `@react-three/rapier`.
 - **Curriculum / world** (`runtime/world`) — bundle many lessons: `<Course>` for
-  a linear textbook (chapter nav, prev/next, `#hash`), or `<CurriculumHost>` with
+  a linear textbook (chapter nav, prev/next, `#hash`), or `<CourseHost>` with
   **unlock progression** and a swappable **pack** — `linearPack` (status list),
   `map2dPack` (2D node map), or `world3dPack` (3D open-world / RPG). The pack is
   the seam you swap to reskin the whole world.
 - **LMS** (`runtime/lms`) — a progress recorder + dashboard that attach to a
-  lesson or a whole curriculum.
+  lesson or a whole course.
 - **Tutor AI** (`@faraday-academy/tutor`, `pack add tutor`) — a **durable, grounded**
   chat agent embedded beside your content. More below.
 

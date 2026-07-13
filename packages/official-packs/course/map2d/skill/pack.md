@@ -2,7 +2,7 @@
 
 A **course shell**: a full-bleed 2D lecture map rendered as an immersive
 game screen (grid floor, vignette, glowing status nodes, dashed locked paths). The
-course core (`<CurriculumHost>`) still owns progress and unlock; this pack only
+course core (`<CourseHost>`) still owns progress and unlock; this pack only
 decides *how lectures are navigated*.
 
 ## Install
@@ -17,11 +17,11 @@ to tweak — node radius, colors (theme tokens only), the layout.
 ## Use
 
 ```tsx
-import { CurriculumHost, useNode, type Curriculum } from "@faraday-academy/runtime/world";
+import { CourseHost, useNode, type Course } from "@faraday-academy/runtime/world";
 import { map2dPack } from "./map2d";
 
-const curriculum: Curriculum = { title: "…", nodes: [ /* … */ ] };
-export default () => <CurriculumHost curriculum={curriculum} pack={map2dPack} />;
+const course: Course = { title: "…", nodes: [ /* … */ ] };
+export default () => <CourseHost course={course} pack={map2dPack} />;
 ```
 
 - Place lectures with `meta.{x,y}` (0..100) to read like a path/tree; omit for an

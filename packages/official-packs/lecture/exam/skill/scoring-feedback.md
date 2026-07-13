@@ -15,5 +15,5 @@ submission.
   that ends learning is a wasted one.
 
 → **Faraday:** put the score + review on a final node revealed on submit (a
-`<Reveal>` or a dedicated results screen); if the exam lives in a curriculum, write
+`<Reveal>` or a dedicated results screen); if the exam lives in a course, write
 per-outcome results to the `lms` recorder so the dashboard reflects them.

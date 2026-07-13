@@ -29,7 +29,7 @@ it **builds on the `audience` pack's CRA row** — load that first
 - **`<Challenge>`** — the "do it" mission cleared in a `<Workbench>`; the concrete
   step of CRA.
 - **`<Quiz>`** with **picture-anchored options** — recognition without reading.
-- A **game world** (`<CurriculumHost>` + `map2dPack`/`world3dPack`) for a sequence,
+- A **game world** (`<CourseHost>` + `map2dPack`/`world3dPack`) for a sequence,
   with visible unlocks.
 
 ## Quality gate

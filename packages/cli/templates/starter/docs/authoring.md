@@ -350,7 +350,7 @@ Keep chapter components in `src/lesson/chapters/`. See `docs/examples/course.tsx
 ### Curricula & worlds (unlock progression, swappable packs)
 
 For a graph of lessons with **unlock progression** (not just linear chapters), use
-`<CurriculumHost>` from `@faraday-academy/runtime/world`. You declare a `Curriculum` (nodes with
+`<CourseHost>` from `@faraday-academy/runtime/world`. You declare a `Course` (nodes with
 `requires` + per-node `lesson`); the host owns progress, the world↔lesson toggle,
 the HUD, and an event stream for LMS/tutor hooks. The *shape* of the world is a
 swappable **pack** (ports-and-adapters) — change one prop, keep the content:
@@ -369,16 +369,16 @@ lesson view (the textbook); leaving returns to the world. Pass
 course page), or `hint="…"` to override the HUD hint.
 
 ```tsx
-import { CurriculumHost, map2dPack, type Curriculum } from "@faraday-academy/runtime/world";
-const curriculum: Curriculum = { title: "…", nodes: [
+import { CourseHost, map2dPack, type Course } from "@faraday-academy/runtime/world";
+const course: Course = { title: "…", nodes: [
   { id: "a", title: "A", meta: { x: 15, y: 50 }, lesson: <LessonA /> },
   { id: "b", title: "B", requires: ["a"], meta: { x: 55, y: 50 }, lesson: <LessonB /> },
 ]};
-export default () => <CurriculumHost curriculum={curriculum} pack={map2dPack} />;
+export default () => <CourseHost course={curriculum} pack={map2dPack} />;
 ```
 
 Keep `curriculum` at **module scope** (stable identity). Defining it inside the
-component recreates the object every render and wipes progress — `CurriculumHost`
+component recreates the object every render and wipes progress — `CourseHost`
 warns in dev when that happens.
 
 `meta.{x,y}` (0..100) place nodes on the map/world (percentages of the pack's

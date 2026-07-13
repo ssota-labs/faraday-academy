@@ -67,7 +67,7 @@ Import from `@faraday-academy/runtime/blocks`; raw shadcn primitives are in `@fa
   MCQ closing a compute/do/predict outcome under-tests it):
   - `<Quiz question options onCorrect?>` — recognition MCQ; distractors are
     documented misconceptions, hints are feed-forward. `onCorrect` →
-    `useNode().complete()` gates a curriculum node.
+    `useNode().complete()` gates a course node.
   - `<NumericAnswer question answer tolerance? unit? hint? onCorrect?>` — the
     learner computes and types the number (default tolerance 2%).
   - `<SketchPad prompt background? overlay onSelfAssess?>` — draw the
@@ -148,4 +148,4 @@ domain 3D scene that ships with `neutral` mood is a defect.
 
 > **Pack `lecture-design`:** installed via `faraday pack add lecture-design`. Authoring guide at `.faraday/packs/lecture-design`. Load it when you are designing how a lesson or curriculum teaches — choosing a methodology, sequencing, assessment cadence, or feedback.
 
-> **Pack `map2d`:** installed via `faraday pack add map2d`. Authoring guide at `.faraday/packs/map2d/pack.md`. Load it when a curriculum should be shown as a 2D map / game screen with unlock progression (a <CurriculumHost>), rather than a linear document list.
+> **Pack `map2d`:** installed via `faraday pack add map2d`. Authoring guide at `.faraday/packs/map2d/pack.md`. Load it when a course should be shown as a 2D map / game screen with unlock progression (a <CourseHost>), rather than a linear document list.

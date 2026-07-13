@@ -156,7 +156,7 @@ Final report (returned to an orchestrator — be precise, under 550 words):
 
 1. **"3D/2D 게임 팩은 화면 꽉 채우고 상태창도 게임처럼 (HMD/게임 상태창).
    헤더·영역 구분·여백 많으면 게임 같지 않다."**
-   → quality-bar Surface 1; `CurriculumHost` immersive 모드 + `world/hud.tsx`;
+   → quality-bar Surface 1; `CourseHost` immersive 모드 + `world/hud.tsx`;
    map2d/world3d 풀블리드; FitCamera.
 2. **"교재가 빈약. 한 장의 목표는 개념 설명이지 인터랙션 하나가 아니다 —
    인터랙션 여러 개 + 텍스트 중간중간 + 컨트롤 패널형 + 차트/그래프(진짜 수식

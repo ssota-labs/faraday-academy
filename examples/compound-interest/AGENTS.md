@@ -67,7 +67,7 @@ Import from `@faraday-academy/runtime/blocks`; raw shadcn primitives are in `@fa
   MCQ closing a compute/do/predict outcome under-tests it):
   - `<Quiz question options onCorrect?>` — recognition MCQ; distractors are
     documented misconceptions, hints are feed-forward. `onCorrect` →
-    `useNode().complete()` gates a curriculum node.
+    `useNode().complete()` gates a course node.
   - `<NumericAnswer question answer tolerance? unit? hint? onCorrect?>` — the
     learner computes and types the number (default tolerance 2%).
   - `<SketchPad prompt background? overlay onSelfAssess?>` — draw the
