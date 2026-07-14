@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "next-best-practices": { "source": "ssota-mirror", "status": "pending-install" },
+    "vercel-composition-patterns": { "source": "ssota-mirror", "status": "pending-install" },
+    "playwright-best-practices": { "source": "ssota-mirror", "status": "pending-install" },
+    "supabase": { "source": "ssota-mirror", "status": "pending-install" },
+    "faraday-platform": { "source": "local", "path": ".agents/skills/faraday-platform" }
+  }
+}
