@@ -132,8 +132,17 @@ GTM Stage와 다른 **플랫폼 내부 구현 페이즈**다.
 Faraday Stage 2 플랫폼 앱은 [ssota-labs/ssota](https://github.com/ssota-labs/ssota)의 개발 환경,
 스킬, 검증 게이트, Vercel-native 런타임 패턴을 **정본(reference implementation)** 으로 따른다.
 
-`docs/VISION.md`가 언급하는 `mirror-dimension`은 공개 레포가 없으며(404), 현재 시점의 실질적 플랫폼
-정본은 `ssota`다. Faraday는 ssota의 범용 워크스페이스 모델을 **교육 오픈 플랫폼** 도메인으로 변형한다.
+Faraday Stage 2는 두 개의 공개 ssota 레포를 역할별로 참조한다.
+
+| 레포 | 역할 | Faraday 대응 |
+|---|---|---|
+| [ssota-labs/ssota](https://github.com/ssota-labs/ssota) | 범용 워크스페이스 SaaS — `studio-*` **인프라** 패키지, harness, WDK, Supabase | 구현 정본: sandbox/build/renderer, 스킬·CI·품질 게이트 |
+| [ssota-labs/mirror-dimension](https://github.com/ssota-labs/mirror-dimension) | 디자인 툴(dimension) 호스티드 Studio — Stage 2+ `apps/web` | **제품 아날로그**: 코스 = dimension, Studio Agent + 서브도메인 배포 UX |
+
+`mirror-dimension`의 Stage 1(스킬·CLI)은 Faraday CLI(Stage 1)와 대응하고, Stage 2+ 인앱 Studio는
+`studio.faraday.com` 제작 경험의 직접 참조 모델이다. ssota의 `packages/studio-sandbox` 등은
+mirror-dimension이 소비하는 **구현 레이어**이며, Faraday는 ssota 인프라 패턴 + mirror-dimension
+Studio UX를 **교육 오픈 플랫폼** 도메인으로 변형한다.
 
 이 절은 제품 정책(§1~§3)을 바꾸지 않는다. **구현 방식·에이전트 규율·품질 게이트**만 ssota와
 정렬한다.
@@ -142,7 +151,7 @@ Faraday Stage 2 플랫폼 앱은 [ssota-labs/ssota](https://github.com/ssota-lab
 
 | Faraday Stage 2 | ssota 대응 | 비고 |
 |---|---|---|
-| `studio.faraday.com` (제작 Studio) | `apps/web` + `packages/studio-sandbox` | Vercel Sandbox 격리 빌드 |
+| `studio.faraday.com` (제작 Studio) | mirror-dimension `apps/web` + ssota `studio-sandbox` | Vercel Sandbox 격리 빌드, 2-pane Studio Agent |
 | `api.faraday.com` (중앙 API) | `apps/mcp` / route handlers | 필요 시 MCP 앱 분리 |
 | Artifact Router + release pointer | `packages/studio-build` + delivery | 코스별 서브도메인 라우팅은 Faraday 고유 |
 | trusted Course Shell | `packages/studio-renderer` | JSON-render / platform-owned UI |
@@ -359,7 +368,7 @@ e2e/
 
 | 항목 | 내용 | 대응 |
 |---|---|---|
-| `mirror-dimension` 부재 | 공개 레포 없음 | `ssota`를 정본으로 삼고 Faraday 문서 참조 갱신 |
+| ssota vs mirror-dimension 혼동 | ssota = 인프라·harness, mirror-dimension = 호스티드 Studio 제품 | §4.1·§4.9 역할 표를 정본으로 유지 |
 | 라이선스 | ssota는 Sustainable Use License | **패턴·스킬·harness는 참고**, 코드 복사는 LICENSE 검토 |
 | `studio-sandbox` 내부 | 구현 세부는 README/e2e로 역산 | P2에서 Vercel Sandbox API와 함께 설계 |
 | `emulate` 패키지 | npm 공개 여부 별도 확인 | 없으면 Playwright mock/intercept로 대체 |
@@ -369,6 +378,108 @@ e2e/
 
 ssota 정렬은 Faraday의 **Artifact Router·교육 도메인·오픈 플랫폼 정책**을 대체하지 않는다.
 구현 속도와 품질 게이트를 ssota에서 가져오되, 제품 경계는 이 문서 §1~§3과 §6 이후 절이 우선한다.
+
+### 4.9 채팅 표면 아키텍처
+
+플랫폼에는 **서로 다른 세 가지 대화·커뮤니케이션 표면**이 있다. 하나의 `/api/chat`로 합치지 않는다.
+각 표면은 origin, 인증, durable run 소유권, grounding, UI mount 지점이 다르다.
+
+```text
+┌─ A. Creator Studio chat ─────────────────────────────────────┐
+│ origin: studio.faraday.com                                    │
+│ UI: 좌 채팅 · 우 preview iframe (derivePreviewUrl)           │
+│ API: POST /api/studio/chat  →  runStudioAgent (WDK)           │
+│ tools: sandbox read/write, build, manifest, quality gate      │
+│ 참조: mirror-dimension studio-session, dimension-agent        │
+└───────────────────────────────────────────────────────────────┘
+
+┌─ B. Learner Tutor chat ─────────────────────────────────────┐
+│ origin: {courseSlug}.learn.faraday.com (trusted Course Shell) │
+│ UI: Shell overlay — UGC iframe 밖, docked Tutor 패널          │
+│ API: POST /api/tutor/runs  →  GET .../stream (WDK reconnect)  │
+│ grounding: sealed bundle + LMS projection (서버 조립)         │
+│ 평가 중: officialAttemptId로 answer leakage 정책 강제           │
+└───────────────────────────────────────────────────────────────┘
+
+┌─ C. Course community ────────────────────────────────────────┐
+│ origin: Course Shell widget / community 서브경로               │
+│ 형태: 비동기 게시판 (thread/post) — 실시간 채팅 아님 (§11)     │
+│ API: REST — /v1/courses/:id/community/*                       │
+└───────────────────────────────────────────────────────────────┘
+```
+
+#### A. Creator Studio chat (P2)
+
+mirror-dimension Stage 2+ `apps/web` 패턴을 따른다.
+
+| 항목 | mirror-dimension | Faraday Stage 2 |
+|---|---|---|
+| 제작 단위 | `dimension` | `course` / `course_version` |
+| 채팅 transport | `WorkflowChatTransport` | 동일 |
+| route | `POST /api/chat` | `POST /api/studio/chat` |
+| workflow | `dimension-agent` | `studio-agent` (Faraday skill/pack registry) |
+| preview | `derivePreviewUrl` → sandboxed iframe | `{buildId}.preview.faraday.com` |
+| run 소유권 | `recordRunOwner` (user/project) | `recordRunOwner` (user/course draft) |
+| 세션 | 대화·파일 상태 DB persist | draft snapshot + 대화 이력 persist |
+
+Studio UI 레이아웃:
+
+```text
+┌────────────────── studio.faraday.com ──────────────────┐
+│  [채팅 패널]          │  [preview iframe]              │
+│  WorkflowChatTransport│  derivePreviewUrl(buildId)     │
+│  tool calls 로그      │  postMessage (preview 계약만)   │
+│  build/quality 결과   │  플랫폼 cookie·secret 없음      │
+└──────────────────────────────────────────────────────┘
+```
+
+에이전트 sandbox는 Vercel Sandbox(ssota `studio-sandbox`)에서 소스를 수정하고, quality gate 통과 후
+artifact를 업로드한다. Studio 채팅에는 **학습자 session·entitlement·공식 정답**이 들어가지 않는다.
+
+참조 구현 (mirror-dimension, 패턴 이식 — LICENSE 검토 후):
+
+- `apps/web/components/studio/studio-session.tsx` — 2-pane Studio 세션
+- `apps/web/app/api/chat/route.ts` — chat route + run 소유권
+- `apps/web/app/workflows/dimension-agent.ts` — durable agent + tool wiring
+
+#### B. Learner Tutor chat (P4)
+
+학습자 튜터는 **신뢰된 Course Shell overlay**다. 생성된 UGC iframe 안에 Tutor를 mount하지 않는다.
+
+| 항목 | standalone lesson (Stage 1) | 플랫폼 (Stage 2) |
+|---|---|---|
+| Tutor mount | 레슨 앱 내부 (`<Tutor>`) | Course Shell overlay |
+| API | colocated `POST /api/chat` (Nitro+WDK) | 중앙 `POST /api/tutor/runs` |
+| endpoint 설정 | `api: "/api/chat"` 고정 | configurable + Shell이 주입 |
+| grounding | 레슨 `.env` / 로컬 번들 | sealed bundle (서버만 조회) |
+| 평가 연동 | pack 수준 정책 | `officialAttemptId` → 서버가 lock 모드 결정 |
+
+요청 흐름:
+
+```text
+UGC iframe
+  └─ requestTrustedSurface({ kind: "TUTOR" })
+       └─ Course Shell overlay open
+            └─ POST /api/tutor/runs { courseVersionId, nodeId, messages, officialAttemptId? }
+                 └─ 서버: entitlement · grounding · budget · exam policy
+                      └─ WDK run → SSE stream → reconnect by runId
+```
+
+wire protocol은 기존 tutor pack의 POST/SSE/runId/reconnect를 **가능한 한 유지**한다(§10.3).
+conversation/run ID는 Shell session에 영속해 새로고침 후 같은 run에 재연결한다.
+
+#### C. Course community (P6)
+
+커뮤니티는 채팅 SDK·WDK 대상이 **아니다**. REST 기반 비동기 게시판(§11)이며, Course Shell
+widget 또는 deep link로 노출한다. enrollment/entitlement 없이는 읽기·쓰기 불가.
+
+#### 공통 원칙
+
+1. **origin 분리** — Studio / Learning / Preview / Artifact는 서로 다른 cookie scope.
+2. **run 소유권** — 모든 durable agent run은 user + 리소스(course/draft)에 귀속; reconnect마다 검증.
+3. **UGC 무토큰** — 생성 iframe에는 learner session, tutor token, API capability를 전달하지 않음(§13.2).
+4. **grounding 서버 조립** — 클라이언트가 보낸 `context`·system instruction·answer key 무시(§10.2).
+5. **라우트 분리** — `/api/studio/chat` ≠ `/api/tutor/runs`; 합치지 않음.
 
 ---
 
@@ -787,6 +898,8 @@ interface PlatformTutorRequest {
 bundle과 LMS 상태에서 grounding을 구성한다.
 
 ### 10.3 현재 구현에서 필요한 변경
+
+채팅 표면 분리와 mount 지점은 §4.9를 따른다.
 
 - `@faraday-academy/tutor`의 `api: "/api/chat"` 고정을 configurable endpoint로 변경
 - Course Shell이 인증과 course context를 소유하고 trusted tutor overlay를 렌더

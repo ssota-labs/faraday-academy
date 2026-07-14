@@ -1,9 +1,11 @@
 # Faraday — 비전 & 아키텍처
 
 > 상태: draft · 이 문서는 지금까지의 개발 정리 + 플랫폼 방향 설계다.
-> 뿌리: `../ssota` 문서의 "외부 Studio Seed → 플랫폼" 명제를 **교육(인터랙티브 텍스트북)**
-> 도메인으로 realize한 것. 플랫폼 페이즈는 `../mirror-dimension`의 교육판이다.
-> 플랫폼 구현 정본: [STAGE2-PLATFORM.md](STAGE2-PLATFORM.md) (§4 SSOTA 정렬 포함)
+> 뿌리: [ssota](https://github.com/ssota-labs/ssota)의 "외부 Studio Seed → 플랫폼" 명제를
+> **교육(인터랙티브 텍스트북)** 도메인으로 realize한 것.
+> 호스티드 Studio UX는 [mirror-dimension](https://github.com/ssota-labs/mirror-dimension) Stage 2+의
+> 교육판(코스 = dimension). 인프라·harness·WDK 패턴은 ssota `studio-*` 패키지를 따른다.
+> 플랫폼 구현 정본: [STAGE2-PLATFORM.md](STAGE2-PLATFORM.md) (§4 SSOTA 정렬 · §4.9 채팅 표면)
 
 ---
 
