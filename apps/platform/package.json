@@ -1,0 +1,36 @@
+{
+  "name": "@faraday-academy/platform",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Faraday Stage 2 platform — Studio, Course Shell, central API (Next.js 16).",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "next dev --port 3100",
+    "build": "next build",
+    "start": "next start --port 3100",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --import tsx --test src/**/*.test.ts lib/**/*.test.ts"
+  },
+  "dependencies": {
+    "@faraday-academy/platform-adapter-supabase": "workspace:*",
+    "@faraday-academy/platform-artifact-router": "workspace:*",
+    "@faraday-academy/platform-contracts": "workspace:*",
+    "@faraday-academy/platform-core": "workspace:*",
+    "@faraday-academy/platform-studio-build": "workspace:*",
+    "@faraday-academy/platform-studio-sandbox": "workspace:*",
+    "next": "^15.5.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "tsx": "^4.20.3",
+    "typescript": "~5.9.0"
+  }
+}

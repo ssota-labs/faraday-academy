@@ -5,6 +5,12 @@
   "scripts": {
     "test": "pnpm --filter @faraday-academy/cli test && node --test scripts/setup-env-local.test.mjs",
     "test:cli": "pnpm --filter @faraday-academy/cli test",
+    "test:platform": "pnpm --filter @faraday-academy/platform-contracts test && pnpm --filter @faraday-academy/platform-core test && pnpm --filter @faraday-academy/platform-artifact-router test && pnpm --filter @faraday-academy/platform-studio-build test && pnpm --filter @faraday-academy/platform-studio-sandbox test && pnpm --filter @faraday-academy/platform-adapter-supabase test",
+    "typecheck:platform": "pnpm --filter @faraday-academy/platform-contracts typecheck && pnpm --filter @faraday-academy/platform-core typecheck && pnpm --filter @faraday-academy/platform-artifact-router typecheck && pnpm --filter @faraday-academy/platform-studio-build typecheck && pnpm --filter @faraday-academy/platform-studio-sandbox typecheck && pnpm --filter @faraday-academy/platform-adapter-supabase typecheck && pnpm --filter @faraday-academy/platform typecheck",
+    "harness:docs": "node scripts/harness/check-docs.mjs",
+    "harness:boundaries": "node scripts/harness/check-boundaries.mjs",
+    "verify:quick": "pnpm harness:docs && pnpm harness:boundaries && pnpm typecheck:platform && pnpm test:platform",
+    "verify:final": "pnpm verify:quick",
     "publish:packages": "node scripts/publish-packages.mjs",
     "publish:packages:dry": "node scripts/publish-packages.mjs --dry-run",
     "sync:skills": "node scripts/sync-skills.mjs",
