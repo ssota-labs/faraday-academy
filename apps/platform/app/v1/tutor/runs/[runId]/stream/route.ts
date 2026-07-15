@@ -1,39 +1,39 @@
-import { getPlatform, error, learnerIdFromRequest } from "@/lib/platform";
+/**
+ * GET /v1/tutor/runs/[runId]/stream — durable reconnect.
+ * `runId` is the WDK workflow run id (x-workflow-run-id), not the TutorRun row id.
+ * Clients using WorkflowChatTransport reconnect here automatically.
+ */
+import { getRun } from "workflow/api";
+import { createUIMessageStreamResponse } from "ai";
+import {
+  createModelCallToUIChunkTransform,
+  type ModelCallStreamPart,
+} from "@ai-sdk/workflow";
+import { error, learnerIdFromRequest } from "@/lib/platform";
 
 export async function GET(
-  req: Request,
-  ctx: { params: Promise<{ runId: string }> },
+  request: Request,
+  { params }: { params: Promise<{ runId: string }> },
 ) {
-  const userId = learnerIdFromRequest(req);
+  const userId = learnerIdFromRequest(request);
   if (!userId) return error("UNAUTHORIZED", "missing user", 401);
-  const { runId } = await ctx.params;
-  const platform = getPlatform();
-  try {
-    const run = await platform.tutor.getRun(runId, userId);
-    const encoder = new TextEncoder();
-    const stream = new ReadableStream({
-      start(controller) {
-        controller.enqueue(
-          encoder.encode(
-            `event: meta\ndata: ${JSON.stringify({ runId: run.id, status: run.status })}\n\n`,
-          ),
-        );
-        controller.enqueue(
-          encoder.encode(
-            `event: token\ndata: ${JSON.stringify({ text: "Tutor stub: grounded reply." })}\n\n`,
-          ),
-        );
-        controller.enqueue(encoder.encode(`event: done\ndata: {}\n\n`));
-        controller.close();
-      },
-    });
-    return new Response(stream, {
-      headers: {
-        "content-type": "text/event-stream",
-        "cache-control": "no-cache",
-      },
-    });
-  } catch (e) {
-    return error("FORBIDDEN", e instanceof Error ? e.message : "failed", 403);
-  }
+
+  const { runId } = await params;
+  if (!runId) return error("BAD_REQUEST", "missing runId", 400);
+
+  const startIndexParam = new URL(request.url).searchParams.get("startIndex");
+  const startIndex =
+    startIndexParam !== null ? Number(startIndexParam) : undefined;
+
+  const run = getRun(runId);
+  const readable = run.getReadable(
+    startIndex !== undefined && Number.isFinite(startIndex)
+      ? { startIndex }
+      : undefined,
+  ) as ReadableStream<ModelCallStreamPart>;
+
+  return createUIMessageStreamResponse({
+    stream: readable.pipeThrough(createModelCallToUIChunkTransform()),
+    headers: { "x-workflow-run-id": runId },
+  });
 }
