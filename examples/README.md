@@ -8,6 +8,7 @@ a self-contained Vite lesson app (its own `package.json` + lockfile).
 |---|---|---|---|---|
 | [`compound-interest/`](compound-interest/) | **S1 복리의 폭주** — sliders → compound growth chart | 2D | `examples/compound-interest` | [Vercel setup](../docs/VERCEL-DEMOS.md) |
 | [`voyage-log/`](voyage-log/) | **C-B 항해 일지** — relativity / gravity / time as a space voyage curriculum | `--3d` | `examples/voyage-log` | [Vercel setup](../docs/VERCEL-DEMOS.md) |
+| [`star-chart/`](star-chart/) | **스타 차트** — Kepler → slingshot → equivalence → time dilation → lensing → clock sync | `three` + `sim2d` | `examples/star-chart` | [Vercel setup](../docs/VERCEL-DEMOS.md) |
 
 ## Install Faraday (creator CTA)
 
