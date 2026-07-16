@@ -1,0 +1,42 @@
+{
+  "name": "@faraday-academy/lms",
+  "version": "0.3.0",
+  "type": "module",
+  "description": "Optional local learning progress recorder and dashboard for Faraday lessons.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "LICENSE.md"
+  ],
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "prepack": "cp ../../LICENSE.md ./LICENSE.md 2>/dev/null || true"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ssota-labs/faraday-academy.git",
+    "directory": "packages/lms"
+  },
+  "peerDependencies": {
+    "@faraday-academy/kit": "0.3.0",
+    "@faraday-academy/ui": "0.3.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@faraday-academy/kit": "workspace:*",
+    "@faraday-academy/ui": "workspace:*",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "typescript": "~5.9.0"
+  },
+  "license": "SEE LICENSE IN LICENSE.md"
+}

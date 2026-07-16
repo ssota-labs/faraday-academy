@@ -66,7 +66,7 @@ test("doctor fails (exit 3) when a required file is missing", async () => {
   const base = await tmp();
   const dir = await scaffold(base, "broken");
   await fs.writeFile(path.join(dir, "pnpm-lock.yaml"), "lockfileVersion: '9.0'\n");
-  await fs.rm(path.join(dir, "src", "app.css"));
+  await fs.rm(path.join(dir, "app", "globals.css"));
   let code = 0;
   await runFaradayCli(["doctor", "--dir", dir], { cwd: base, stdout: () => {}, stderr: () => {}, setExitCode: (c) => (code = c) });
   assert.equal(code, 3);
@@ -76,7 +76,7 @@ test("doctor fails (exit 3) when a required file is missing", async () => {
 test("upgrade moves the kit pin exactly, then passes doctor", async () => {
   const base = await tmp();
   const dir = await scaffold(base, "bumpable");
-  assert.equal(JSON.parse(await read(dir, "package.json")).dependencies["@faraday-academy/kit"], "0.2.0");
+  assert.equal(JSON.parse(await read(dir, "package.json")).dependencies["@faraday-academy/kit"], "0.3.0");
 
   let out = "";
   await runFaradayCli(

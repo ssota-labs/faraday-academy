@@ -1,6 +1,6 @@
 {
   "name": "@faraday-academy/cli",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Faraday Academy — a shadcn-based scaffolder for AI-authored interactive lessons, with installable module packs (faraday pack add).",
   "type": "module",
   "bin": {
@@ -11,6 +11,7 @@
     "src",
     "templates",
     "packs",
+    "catalog.json",
     "LICENSE.md"
   ],
   "scripts": {

@@ -3,7 +3,7 @@
 Load this when the lesson should feel like a **storybook or fairy-tale game** —
 paged scenes, story-led or young learners, CRA order, big touch targets. This
 pack **absorbs the former `kids` tablet preset** and builds on **`game2d`**
-(auto-installed via `requires`).
+(`faraday pack add storybook-game2d` also installs `game2d` via `requires`).
 
 Also load the **`audience`** pack when you need the CRA methodology detail; this pack
 is the **build recipe + Pixi page shell**.
