@@ -183,7 +183,7 @@ bar applies to the lesson as a whole regardless of layout.
 ## Interaction craft — direct, alive, never snapping
 
 The feel of an interactive is graded ([docs/quality-bar.md](quality-bar.md),
-Surface 3). Simulation hooks from `src/lesson/sim2d` (the `sim2d` pack) do the heavy lifting:
+Surface 2). Simulation hooks from `src/lesson/sim2d` (the `sim2d` pack) do the heavy lifting:
 
 - **Drag the object, not a detached slider** — when the variable lives on an
   object (a position, angle, vector, boundary), make the object grabbable:
