@@ -329,24 +329,21 @@ Static (non-tutor) lessons stay server-free. Full guide: the scaffolded
 ## CLI reference
 
 ```
-faraday new <name> [--no-defaults] [--at <dir>] [--overwrite] [--skip-install] [--json]
+faraday init [--dir <project>] [--skip-install] [--json]
+faraday new <name> [--at <dir>] [--overwrite] [--skip-install] [--json]
 faraday check [--dir <lesson>]     verify the lesson layout + runtime pin
-faraday pack list | add <name|source> [--physics] | remove <name> | show <name> | validate <name>
+faraday block list | show <name>   browse the block registry
+faraday pack list | add <name|source> | remove <name> | show <name> | validate <name>
 faraday pack new <name> [--kind skill|copy|runtime]   scaffold a new pack (for authors)
 faraday help
 ```
 
-**Capabilities are packs, not flags** — and `new` is **batteries-included**: it
-auto-installs all default packs (skill + runtime), so `three` (`--physics` variant),
-`tutor`, `srs`, `exam`, `slide-view`, `sim2d`, `game2d`, `storybook-game2d`, `notes`, `textbook-view`, `lecture-design`, and `audience` are
-on hand from the start (`faraday pack list` shows the live catalog). Use `--no-defaults`
-for a minimal lesson, and `faraday pack remove <name>` to drop what a finished lesson
-doesn't need (e.g. the heavy `three`/`tutor` runtimes). `faraday pack add <name|source>`
-installs a third-party pack or re-adds a removed one.
+**Capabilities are packs, not flags** — `faraday new` scaffolds a minimal vinext lesson
+with kit/ui pinned and **no packs pre-installed**. Run `faraday pack add <name>` for
+methodology, runtime, or presentation packs (`faraday pack list` shows the live catalog).
 
 | `new` flag | Effect |
 |---|---|
-| `--no-defaults` | skip the auto-installed packs — scaffold a minimal lesson. |
 | `--at <dir>` | scaffold into `<dir>` instead of `./<name>`. |
 | `--overwrite` | allow writing into a non-empty target. |
 | `--skip-install` | skip `pnpm install` (or set `FARADAY_SKIP_INSTALL=1`). |
