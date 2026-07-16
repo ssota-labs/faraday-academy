@@ -44,7 +44,7 @@ test("generateLesson produces the expected tree + injections", async () => {
   assert.equal(pkg.private, true);
   const pin = pkg.dependencies["@faraday-academy/kit"];
   assert.ok(pin && /^\d+\.\d+\.\d+/.test(pin), `runtime must be pinned exactly, got ${pin}`);
-  assert.equal(pkg.dependencies["@faraday-academy/ui"], "0.2.0");
+  assert.equal(pkg.dependencies["@faraday-academy/ui"], "0.3.0");
   assert.match(await read(target, "app/layout.tsx"), /<title>My Cool Lesson<\/title>/);
 
   const css = await read(target, "app/globals.css");
@@ -89,8 +89,8 @@ test("faraday init attaches Faraday to an existing project", async () => {
   assert.match(await read(base, "AGENTS.md"), /## Faraday/);
   assert.ok(await exists(path.join(base, ".faraday/provenance.json")));
   const pkg = JSON.parse(await read(base, "package.json"));
-  assert.equal(pkg.dependencies["@faraday-academy/kit"], "0.2.0");
-  assert.equal(pkg.dependencies["@faraday-academy/ui"], "0.2.0");
+  assert.equal(pkg.dependencies["@faraday-academy/kit"], "0.3.0");
+  assert.equal(pkg.dependencies["@faraday-academy/ui"], "0.3.0");
   await fs.rm(base, { recursive: true, force: true });
 });
 
@@ -160,7 +160,7 @@ test("faraday check fails when the runtime pin is a range, not exact (exit 1)", 
   );
   const pkgPath = path.join(dir, "package.json");
   const pkg = JSON.parse(await fs.readFile(pkgPath, "utf8"));
-  pkg.dependencies["@faraday-academy/kit"] = "^0.2.0";
+  pkg.dependencies["@faraday-academy/kit"] = "^0.3.0";
   await fs.writeFile(pkgPath, JSON.stringify(pkg, null, 2));
   let code = 0;
   await runFaradayCli(

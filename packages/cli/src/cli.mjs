@@ -162,8 +162,8 @@ async function runInit(argv, context) {
   pkg.dependencies = Object.fromEntries(
     Object.entries({
       ...(pkg.dependencies ?? {}),
-      "@faraday-academy/kit": "0.2.0",
-      "@faraday-academy/ui": "0.2.0",
+      "@faraday-academy/kit": "0.3.0",
+      "@faraday-academy/ui": "0.3.0",
     }).sort(([a], [b]) => a.localeCompare(b)),
   );
   await fs.writeFile(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
@@ -176,12 +176,12 @@ async function runInit(argv, context) {
       provenancePath,
       `${JSON.stringify({
         lessonId: context.uuid?.() ?? crypto.randomUUID(),
-        createdWith: "faraday@0.2.0",
+        createdWith: "faraday@0.3.0",
         template: "attached",
-        runtime: "@faraday-academy/kit@0.2.0",
+        runtime: "@faraday-academy/kit@0.3.0",
         packages: {
-          "@faraday-academy/kit": "0.2.0",
-          "@faraday-academy/ui": "0.2.0",
+          "@faraday-academy/kit": "0.3.0",
+          "@faraday-academy/ui": "0.3.0",
         },
         packs: [],
         name: pkg.name ?? path.basename(targetDir),

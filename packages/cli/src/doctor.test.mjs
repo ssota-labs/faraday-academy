@@ -76,7 +76,7 @@ test("doctor fails (exit 3) when a required file is missing", async () => {
 test("upgrade moves the kit pin exactly, then passes doctor", async () => {
   const base = await tmp();
   const dir = await scaffold(base, "bumpable");
-  assert.equal(JSON.parse(await read(dir, "package.json")).dependencies["@faraday-academy/kit"], "0.2.0");
+  assert.equal(JSON.parse(await read(dir, "package.json")).dependencies["@faraday-academy/kit"], "0.3.0");
 
   let out = "";
   await runFaradayCli(

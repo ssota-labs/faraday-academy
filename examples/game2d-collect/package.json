@@ -11,8 +11,8 @@
     "check": "node scripts/check-structure.mjs"
   },
   "dependencies": {
-    "@faraday-academy/kit": "0.2.0",
-    "@faraday-academy/ui": "0.2.0",
+    "@faraday-academy/kit": "0.3.0",
+    "@faraday-academy/ui": "0.3.0",
     "@pixi/react": "^8.0.5",
     "howler": "^2.2.4",
     "matter-js": "^0.20.0",

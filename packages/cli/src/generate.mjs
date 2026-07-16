@@ -98,12 +98,12 @@ export async function generateLesson(opts) {
     JSON.stringify(
       {
         lessonId: uuid(),
-        createdWith: "faraday@0.2.0",
-        template: "vinext-starter@0.2.0",
-        runtime: "@faraday-academy/kit@0.2.0",
+        createdWith: "faraday@0.3.0",
+        template: "vinext-starter@0.3.0",
+        runtime: "@faraday-academy/kit@0.3.0",
         packages: {
-          "@faraday-academy/kit": "0.2.0",
-          "@faraday-academy/ui": "0.2.0",
+          "@faraday-academy/kit": "0.3.0",
+          "@faraday-academy/ui": "0.3.0",
         },
         packs: [],
         name: packageName,

@@ -1,6 +1,6 @@
 {
   "name": "@faraday-academy/kit",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "description": "The minimal Faraday lesson kit: portable blocks and runtime helpers for agent-built courseware.",
   "sideEffects": [
@@ -38,7 +38,7 @@
     "react-dom": "^19.2.0"
   },
   "dependencies": {
-    "@faraday-academy/ui": "0.2.0",
+    "@faraday-academy/ui": "0.3.0",
     "@phosphor-icons/react": "^2.1.10",
     "katex": "^0.16.11",
     "recharts": "^3.8.0"
