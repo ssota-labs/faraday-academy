@@ -151,258 +151,412 @@
     {
       "name": "Callout",
       "slug": "callout",
+      "kind": "primitive",
       "group": "Explanation",
       "summary": "<Callout> — a highlighted note (built on Alert).",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/Callout.tsx"
+      "sourcePath": "packages/kit/blocks/Callout.tsx",
+      "primitives": [],
+      "usage": null
     },
     {
       "name": "celebrate",
       "slug": "celebrate",
+      "kind": "primitive",
       "group": "More",
       "summary": "celebrate(anchor) — a small confetti burst for the moment a check passes. Dep-free canvas overlay: ~90 particles fountain up from the anchor element, colored from the theme's chart tokens, gone in ~1.4s. Respects prefers-reduced-motion (no-op). Blocks call this automatically on success (Quiz/NumericAnswer correct, Challenge clear, SketchPad matched) — authors can also fire it from custom gameplay moments.",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/celebrate.ts"
+      "sourcePath": "packages/kit/blocks/celebrate.ts",
+      "primitives": [],
+      "usage": null
     },
     {
       "name": "Challenge",
       "slug": "challenge",
+      "kind": "primitive",
       "group": "Assessment",
       "summary": "<Challenge> — a mission-style PERFORMANCE check: the learner clears it by DOING something in the interactive (hit the target, balance the system, reach the state), not by answering about it. You own the win condition: compute `done` from your sim state and the mission banner + clear state are handled here. The strongest assessment when the outcome verb is \"do/tune/ build/achieve\" (see assessment.md) — and the most game-like. <Challenge",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/Challenge.tsx"
+      "sourcePath": "packages/kit/blocks/Challenge.tsx",
+      "primitives": [],
+      "usage": null
     },
     {
       "name": "Chart",
       "slug": "chart",
+      "kind": "primitive",
       "group": "Data",
       "summary": "<Chart> — a data chart built on shadcn's ChartContainer (Recharts). Cartesian types (line / bar / area) and radar take rows + an x/angle key + one or more series. Slice types (pie / donut / radial) treat each ROW as a slice: `x` is the slice-name key and the first series' `key` is the value. Series/slice colours default to the theme's --chart-1..5 tokens (light/dark both work). A hover tooltip is on by default; add `legend` for a legend. Rendering is deferred until the container has a real width. Recharts'",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/Chart.tsx"
+      "sourcePath": "packages/kit/blocks/Chart.tsx",
+      "primitives": [],
+      "usage": null
     },
     {
       "name": "CodeCell",
       "slug": "codecell",
+      "kind": "primitive",
       "group": "Explanation",
       "summary": "<CodeCell> — an editable, RUNNABLE JavaScript cell (notebook-style). The learner edits the code and presses Run; it executes in a sandboxed iframe (no same-origin access) with console.log/info/warn/error captured into an output panel. Use it when the audience codes or the concept is algorithmic — seeing the numbers come out of your own edit is the interaction. The editor is syntax-highlighted (dep-free tokenizer) via a transparent textarea over a colored layer; the code area shares the card background and",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/CodeCell.tsx"
+      "sourcePath": "packages/kit/blocks/CodeCell.tsx",
+      "primitives": [],
+      "usage": null
     },
     {
       "name": "Compare",
       "slug": "compare",
+      "kind": "primitive",
       "group": "Explanation",
       "summary": "<Compare> — tabbed panels for comparing cases side by side (built on Tabs).",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/Compare.tsx"
+      "sourcePath": "packages/kit/blocks/Compare.tsx",
+      "primitives": [],
+      "usage": null
+    },
+    {
+      "name": "CompareModes",
+      "slug": "comparemodes",
+      "kind": "pattern",
+      "group": "Explanation",
+      "summary": "Segmented mode switch driving a side-by-side Compare — contrast two regimes of the same model.",
+      "importPath": null,
+      "sourcePath": "packages/registry/patterns.json",
+      "primitives": [
+        "Segmented",
+        "Compare"
+      ],
+      "usage": "import { Segmented, Compare } from \"@faraday-academy/kit/blocks\";\n\nexport function CompareModes() {\n  const [mode, setMode] = useState(\"elastic\");\n  return (\n    <>\n      <Segmented\n        label=\"Collision type\"\n        value={mode}\n        onChange={setMode}\n        options={[\n          { value: \"elastic\", label: \"Elastic\" },\n          { value: \"inelastic\", label: \"Inelastic\" },\n        ]}\n      />\n      <Compare\n        items={[\n          { value: \"elastic\", label: \"Elastic\", content: \"KE conserved\" },\n          { value: \"inelastic\", label: \"Inelastic\", content: \"KE not conserved\" },\n        ]}\n      />\n    </>\n  );\n}"
     },
     {
       "name": "ControlGroup",
       "slug": "controlgroup",
+      "kind": "primitive",
       "group": "Layout",
       "summary": "<ControlGroup> — a collapsible, labeled section inside a control panel dock. Group related controls semantically (like the sections in a design-tool panel): header shows the label, an optional per-group reset, and a collapse chevron.",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/ControlGroup.tsx"
+      "sourcePath": "packages/kit/blocks/ControlGroup.tsx",
+      "primitives": [],
+      "usage": null
     },
     {
       "name": "Derivation",
       "slug": "derivation",
+      "kind": "primitive",
       "group": "Explanation",
       "summary": "<Derivation> — a formula DERIVED live, not decreed. Steps reveal one line at a time (like a teacher at the board): each line is a TeX equation plus the justification for the move (\"substitute T\", \"divide by m\", \"sin doubles\"). The learner paces it with Next step; the newest line slides in highlighted. quality-bar rule: a lesson's central formula must arrive as the LAST line of one of these (or an equivalent stepped walk) — a bare boxed result fails. <Derivation",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/Derivation.tsx"
+      "sourcePath": "packages/kit/blocks/Derivation.tsx",
+      "primitives": [],
+      "usage": null
     },
     {
       "name": "InkToolbar",
       "slug": "inktoolbar",
+      "kind": "primitive",
       "group": "More",
       "summary": "Bottom ink tool strip — icon buttons for pan/draw tools (overview + slide annotate).",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/InkToolbar.tsx"
+      "sourcePath": "packages/kit/blocks/InkToolbar.tsx",
+      "primitives": [],
+      "usage": null
     },
     {
       "name": "Lecture",
       "slug": "lecture",
+      "kind": "primitive",
       "group": "More",
       "summary": "<Lecture> — lecture shell: each presentation view owns its full layout. Title and lead flow into slide/textbook content — not a shared header chrome.",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/Lecture.tsx"
+      "sourcePath": "packages/kit/blocks/Lecture.tsx",
+      "primitives": [],
+      "usage": null
     },
     {
       "name": "Lesson",
       "slug": "lesson",
+      "kind": "primitive",
       "group": "Layout",
       "summary": "<Lesson> — titled header + vertical flow the sections sit in.",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/Lesson.tsx"
+      "sourcePath": "packages/kit/blocks/Lesson.tsx",
+      "primitives": [],
+      "usage": null
+    },
+    {
+      "name": "McqCheck",
+      "slug": "mcqcheck",
+      "kind": "pattern",
+      "group": "Assessment",
+      "summary": "Prose setup plus a multiple-choice gate — recognize the right claim before moving on.",
+      "importPath": null,
+      "sourcePath": "packages/registry/patterns.json",
+      "primitives": [
+        "Prose",
+        "Quiz"
+      ],
+      "usage": "import { Prose, Quiz } from \"@faraday-academy/kit/blocks\";\n\nexport function McqCheck() {\n  return (\n    <>\n      <Prose heading=\"Momentum is conserved when…\">\n        Think about which forces are internal to the system you chose.\n      </Prose>\n      <Quiz\n        question=\"When is momentum conserved?\"\n        options={[\n          { label: \"No external force\", correct: true },\n          { label: \"Always\", hint: \"Only in a closed system.\" },\n        ]}\n      />\n    </>\n  );\n}"
     },
     {
       "name": "NumericAnswer",
       "slug": "numericanswer",
+      "kind": "primitive",
       "group": "Assessment",
       "summary": "<NumericAnswer> — a free-response check: the learner COMPUTES and types the answer instead of recognizing it in a list. Use when the outcome verb is \"calculate/derive/estimate\" (see assessment.md); tolerance makes rounding and estimation fair. Enter or Check grades; the hint is feed-forward. <NumericAnswer question=\"At 24 m/s and 30°, how far does the ball land?\" answer={50.9} unit=\"m\" tolerance={1}",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/NumericAnswer.tsx"
+      "sourcePath": "packages/kit/blocks/NumericAnswer.tsx",
+      "primitives": [],
+      "usage": null
+    },
+    {
+      "name": "NumericGate",
+      "slug": "numericgate",
+      "kind": "pattern",
+      "group": "Assessment",
+      "summary": "A short derivation followed by a numeric answer check with units and tolerance.",
+      "importPath": null,
+      "sourcePath": "packages/registry/patterns.json",
+      "primitives": [
+        "Derivation",
+        "NumericAnswer"
+      ],
+      "usage": "import { Derivation, NumericAnswer } from \"@faraday-academy/kit/blocks\";\n\nexport function NumericGate() {\n  return (\n    <>\n      <Derivation\n        title=\"Impulse\"\n        steps={[\n          { tex: \"J = F \\\\Delta t\", note: \"Definition\" },\n          { tex: \"J = \\\\Delta p\", note: \"Equals change in momentum\" },\n        ]}\n      />\n      <NumericAnswer\n        question=\"A 2 kg cart moves at 3 m/s. What is its momentum?\"\n        answer={6}\n        tolerance={0.1}\n        unit=\"kg·m/s\"\n      />\n    </>\n  );\n}"
     },
     {
       "name": "Paged",
       "slug": "paged",
+      "kind": "primitive",
       "group": "More",
       "summary": "@deprecated Use <SlideDeck> from ./SlideDeck — kept for backward compatibility.",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/Paged.tsx"
+      "sourcePath": "packages/kit/blocks/Paged.tsx",
+      "primitives": [],
+      "usage": null
+    },
+    {
+      "name": "ParamLab",
+      "slug": "paramlab",
+      "kind": "pattern",
+      "group": "Interactive",
+      "summary": "Workbench with parameter controls and a live readout — the default interactive lab shell.",
+      "importPath": null,
+      "sourcePath": "packages/registry/patterns.json",
+      "primitives": [
+        "Workbench",
+        "ControlGroup",
+        "ParamSlider",
+        "Readout"
+      ],
+      "usage": "import {\n  Workbench,\n  ControlGroup,\n  ParamSlider,\n  Readout,\n} from \"@faraday-academy/kit/blocks\";\n\nexport function ParamLab() {\n  const [mass, setMass] = useState(3);\n  const [vel, setVel] = useState(4);\n  return (\n    <Workbench\n      title=\"Momentum\"\n      panelTitle=\"Parameters\"\n      controls={\n        <ControlGroup label=\"Inputs\">\n          <ParamSlider label=\"Mass (kg)\" value={mass} min={1} max={10} onChange={setMass} />\n          <ParamSlider label=\"Velocity (m/s)\" value={vel} min={0} max={10} onChange={setVel} />\n        </ControlGroup>\n      }\n    >\n      <Readout label=\"p = m·v\" value={`${(mass * vel).toFixed(1)} kg·m/s`} />\n    </Workbench>\n  );\n}"
     },
     {
       "name": "ParamSlider",
       "slug": "paramslider",
+      "kind": "primitive",
       "group": "Controls",
       "summary": "<ParamSlider> — a labeled slider with a live value read-out. Exposes a plain number (the underlying Base UI slider is array-capable; we unwrap it).",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/ParamSlider.tsx"
+      "sourcePath": "packages/kit/blocks/ParamSlider.tsx",
+      "primitives": [],
+      "usage": null
     },
     {
       "name": "ParamSwitch",
       "slug": "paramswitch",
+      "kind": "primitive",
       "group": "Controls",
       "summary": "<ParamSwitch> — a labeled on/off control.",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/ParamSwitch.tsx"
+      "sourcePath": "packages/kit/blocks/ParamSwitch.tsx",
+      "primitives": [],
+      "usage": null
     },
     {
       "name": "PresentationCanvas",
       "slug": "presentationcanvas",
+      "kind": "primitive",
       "group": "More",
       "summary": "Free-mode canvas: custom pan/zoom workspace (not React Flow) with positioned content cards and ink drawn on the canvas.",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/PresentationCanvas.tsx"
+      "sourcePath": "packages/kit/blocks/PresentationCanvas.tsx",
+      "primitives": [],
+      "usage": null
     },
     {
       "name": "PresentationToolbar",
       "slug": "presentationtoolbar",
+      "kind": "primitive",
       "group": "More",
       "summary": "Hover-reveal toolbar for fullscreen presentation views (slides, textbook). On touch devices the bar stays visible — no hover on tablets.",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/PresentationToolbar.tsx"
+      "sourcePath": "packages/kit/blocks/PresentationToolbar.tsx",
+      "primitives": [],
+      "usage": null
     },
     {
       "name": "PresentationTopBar",
       "slug": "presentationtopbar",
+      "kind": "primitive",
       "group": "More",
       "summary": "Fixed top bar — presentation view tabs (Slides / Textbook) + mode actions.",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/PresentationTopBar.tsx"
+      "sourcePath": "packages/kit/blocks/PresentationTopBar.tsx",
+      "primitives": [],
+      "usage": null
     },
     {
       "name": "Prose",
       "slug": "prose",
+      "kind": "primitive",
       "group": "Layout",
       "summary": "<Prose> — a readable text section, optionally titled.",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/Prose.tsx"
+      "sourcePath": "packages/kit/blocks/Prose.tsx",
+      "primitives": [],
+      "usage": null
     },
     {
       "name": "Quiz",
       "slug": "quiz",
+      "kind": "primitive",
       "group": "Assessment",
       "summary": "<Quiz> — a self-check multiple-choice question. Reveals correctness + hint after the learner picks an option and presses Check. Optional callbacks let a lesson react to a pass — e.g. inside a <CourseHost>, wire `onCorrect` to `useNode().complete()` so answering correctly unlocks the next node.",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/Quiz.tsx"
+      "sourcePath": "packages/kit/blocks/Quiz.tsx",
+      "primitives": [],
+      "usage": null
     },
     {
       "name": "Readout",
       "slug": "readout",
+      "kind": "primitive",
       "group": "Data",
       "summary": "<Readout> — a compact label:value chip for LIVE numbers. Use it in a Workbench `hud` overlay (or a control panel) instead of stacking <Stat> cards under a figure — readouts belong ON the instrument, not after it.",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/Readout.tsx"
+      "sourcePath": "packages/kit/blocks/Readout.tsx",
+      "primitives": [],
+      "usage": null
     },
     {
       "name": "Reveal",
       "slug": "reveal",
+      "kind": "primitive",
       "group": "Explanation",
       "summary": "<Reveal> — a collapsible hint / spoiler (built on Accordion).",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/Reveal.tsx"
+      "sourcePath": "packages/kit/blocks/Reveal.tsx",
+      "primitives": [],
+      "usage": null
     },
     {
       "name": "Scrubber",
       "slug": "scrubber",
+      "kind": "primitive",
       "group": "Controls",
       "summary": "<Scrubber> — transport controls for a stepped visualization. Wire to useStepper.",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/Scrubber.tsx"
+      "sourcePath": "packages/kit/blocks/Scrubber.tsx",
+      "primitives": [],
+      "usage": null
     },
     {
       "name": "Segmented",
       "slug": "segmented",
+      "kind": "primitive",
       "group": "Controls",
       "summary": "<Segmented> — a single-select segmented control (built on Tabs).",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/Segmented.tsx"
+      "sourcePath": "packages/kit/blocks/Segmented.tsx",
+      "primitives": [],
+      "usage": null
     },
     {
       "name": "SketchPad",
       "slug": "sketchpad",
+      "kind": "primitive",
       "group": "Assessment",
       "summary": "<SketchPad> — a pen/touch drawing check for tablets (Apple Pencil pressure supported): the learner SKETCHES a prediction (a curve, a construction, a region), then reveals the true answer as an overlay and self-assesses. This is the \"predict-then-compare\" assessment (see assessment.md) — sketches aren't machine-graded; the comparison against the revealed overlay IS the feedback, and the self-assess buttons close the loop. <SketchPad",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/SketchPad.tsx"
+      "sourcePath": "packages/kit/blocks/SketchPad.tsx",
+      "primitives": [],
+      "usage": null
     },
     {
       "name": "SlideDeck",
       "slug": "slidedeck",
+      "kind": "primitive",
       "group": "Layout",
       "summary": "<SlideDeck> — fullscreen slide view: one slide fills the viewport, hover toolbar for navigation, optional overview canvas with ink. The author supplies every slide — including the opening title card (see slide-view skill).",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/SlideDeck.tsx"
+      "sourcePath": "packages/kit/blocks/SlideDeck.tsx",
+      "primitives": [],
+      "usage": null
     },
     {
       "name": "SlideInkLayer",
       "slug": "slideinklayer",
+      "kind": "primitive",
       "group": "More",
       "summary": "Per-slide ink overlay — annotate directly on the active slide (present mode).",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/SlideInkLayer.tsx"
+      "sourcePath": "packages/kit/blocks/SlideInkLayer.tsx",
+      "primitives": [],
+      "usage": null
     },
     {
       "name": "Stage",
       "slug": "stage",
+      "kind": "primitive",
       "group": "Layout",
       "summary": "<Stage> — a Card-framed host for a visualization (SVG, canvas, DOM) + caption.",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/Stage.tsx"
+      "sourcePath": "packages/kit/blocks/Stage.tsx",
+      "primitives": [],
+      "usage": null
     },
     {
       "name": "Stat",
       "slug": "stat",
+      "kind": "primitive",
       "group": "Data",
       "summary": "<Stat> — a compact metric read-out (built on Card + Badge).",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/Stat.tsx"
+      "sourcePath": "packages/kit/blocks/Stat.tsx",
+      "primitives": [],
+      "usage": null
     },
     {
       "name": "TeX",
       "slug": "tex",
+      "kind": "primitive",
       "group": "Explanation",
       "summary": "<TeX> — KaTeX-rendered math. EVERY symbolic expression in a lesson goes through this block (inline in prose, or `block` for display equations); ASCII/`<code>` math is a quality-bar fail. Pass the TeX source as the child string — String.raw`…` keeps backslashes readable. The area swept obeys <TeX>{String.raw`\\frac{dA}{dt} = \\frac{L}{2m}`}</TeX>. <TeX block>{String.raw`T^2 = \\frac{4\\pi^2}{GM}a^3`}</TeX> <TeX block stream>…</TeX> // writes itself out left→right, professor-style",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/TeX.tsx"
+      "sourcePath": "packages/kit/blocks/TeX.tsx",
+      "primitives": [],
+      "usage": null
     },
     {
       "name": "useLecture",
       "slug": "uselecture",
+      "kind": "primitive",
       "group": "More",
       "summary": "Shared context for <Lecture> — title/lead and view switching flow into each presentation view instead of a shared header chrome.",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/lecture-context.tsx"
+      "sourcePath": "packages/kit/blocks/lecture-context.tsx",
+      "primitives": [],
+      "usage": null
     },
     {
       "name": "Workbench",
       "slug": "workbench",
+      "kind": "primitive",
       "group": "Layout",
       "summary": "<Workbench> — mirror-dimension's workbench layout: a live canvas (center) with a floating control panel (right). Put the visualization in `children` and the controls in `controls` — ideally as <ControlGroup> sections so the panel reads as labeled, collapsible groups. The panel floats (elevated card), sticks while scrolling, and stacks under the canvas on narrow screens. Drop the whole block into the middle of a lesson.",
       "importPath": "@faraday-academy/kit/blocks",
-      "sourcePath": "packages/kit/blocks/Workbench.tsx"
+      "sourcePath": "packages/kit/blocks/Workbench.tsx",
+      "primitives": [],
+      "usage": null
     }
   ],
   "examples": []

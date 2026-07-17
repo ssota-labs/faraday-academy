@@ -49,8 +49,8 @@ Usage:
                                         pack.json + a folder skill (SKILL.md index +
                                         sub-guides) + quality.md + examples/. --flat
                                         makes a single-file skill for tiny packs.
-  faraday block list [--json]           list portable lesson blocks
-  faraday block show <name> [--json]    show one block's import and source metadata
+  faraday block list [--json]           list blocks (primitives + patterns)
+  faraday block show <name> [--json]    show one block's kind, import/usage, source
   faraday help
 
 The generated lesson depends on the versioned @faraday-academy/kit package
@@ -628,7 +628,10 @@ async function runBlock(argv, context) {
       return;
     }
     for (const block of blocks) {
-      context.stdout(`${block.name.padEnd(24)} ${block.group.padEnd(14)} ${block.summary}\n`);
+      const kind = block.kind ?? "primitive";
+      context.stdout(
+        `${block.name.padEnd(24)} ${kind.padEnd(12)} ${block.group.padEnd(14)} ${block.summary}\n`,
+      );
     }
     return;
   }
@@ -649,10 +652,18 @@ async function runBlock(argv, context) {
       context.stdout(`${JSON.stringify(block, null, 2)}\n`);
       return;
     }
-    context.stdout(
-      `${block.name}\n${block.summary}\n\nImport:\n  import { ${block.name} } from "${block.importPath}";\n` +
-        (block.sourcePath ? `\nSource: ${block.sourcePath}\n` : ""),
-    );
+    const kind = block.kind ?? "primitive";
+    let body = `${block.name}\n${block.summary}\n\nKind: ${kind}\nGroup: ${block.group}\n`;
+    if (kind === "pattern" && Array.isArray(block.primitives) && block.primitives.length) {
+      body += `Primitives: ${block.primitives.join(", ")}\n`;
+    }
+    if (block.usage) {
+      body += `\nUsage:\n${block.usage}\n`;
+    } else if (block.importPath) {
+      body += `\nImport:\n  import { ${block.name} } from "${block.importPath}";\n`;
+    }
+    if (block.sourcePath) body += `\nSource: ${block.sourcePath}\n`;
+    context.stdout(body);
     return;
   }
   const error = new Error(`Unknown block command: ${subcommand ?? ""}`);
