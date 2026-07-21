@@ -1,6 +1,9 @@
 "use client";
 
 import { BLOCK_PREVIEW_DEMOS } from "./block-previews/demos";
+import { PATTERN_PREVIEW_DEMOS } from "./block-previews/patterns";
+
+const PREVIEW_DEMOS = { ...BLOCK_PREVIEW_DEMOS, ...PATTERN_PREVIEW_DEMOS };
 
 export function BlockPreview({
   name,
@@ -9,7 +12,7 @@ export function BlockPreview({
   name: string;
   compact?: boolean;
 }) {
-  const render = BLOCK_PREVIEW_DEMOS[name];
+  const render = PREVIEW_DEMOS[name];
   const preview = render ? (
     render({ compact })
   ) : (

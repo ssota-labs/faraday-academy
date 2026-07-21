@@ -1,0 +1,34 @@
+[
+  {
+    "name": "ParamLab",
+    "slug": "paramlab",
+    "group": "Interactive",
+    "summary": "Workbench with parameter controls and a live readout — the default interactive lab shell.",
+    "primitives": ["Workbench", "ControlGroup", "ParamSlider", "Readout"],
+    "usage": "import {\n  Workbench,\n  ControlGroup,\n  ParamSlider,\n  Readout,\n} from \"@faraday-academy/kit/blocks\";\n\nexport function ParamLab() {\n  const [mass, setMass] = useState(3);\n  const [vel, setVel] = useState(4);\n  return (\n    <Workbench\n      title=\"Momentum\"\n      panelTitle=\"Parameters\"\n      controls={\n        <ControlGroup label=\"Inputs\">\n          <ParamSlider label=\"Mass (kg)\" value={mass} min={1} max={10} onChange={setMass} />\n          <ParamSlider label=\"Velocity (m/s)\" value={vel} min={0} max={10} onChange={setVel} />\n        </ControlGroup>\n      }\n    >\n      <Readout label=\"p = m·v\" value={`${(mass * vel).toFixed(1)} kg·m/s`} />\n    </Workbench>\n  );\n}"
+  },
+  {
+    "name": "McqCheck",
+    "slug": "mcqcheck",
+    "group": "Assessment",
+    "summary": "Prose setup plus a multiple-choice gate — recognize the right claim before moving on.",
+    "primitives": ["Prose", "Quiz"],
+    "usage": "import { Prose, Quiz } from \"@faraday-academy/kit/blocks\";\n\nexport function McqCheck() {\n  return (\n    <>\n      <Prose heading=\"Momentum is conserved when…\">\n        Think about which forces are internal to the system you chose.\n      </Prose>\n      <Quiz\n        question=\"When is momentum conserved?\"\n        options={[\n          { label: \"No external force\", correct: true },\n          { label: \"Always\", hint: \"Only in a closed system.\" },\n        ]}\n      />\n    </>\n  );\n}"
+  },
+  {
+    "name": "NumericGate",
+    "slug": "numericgate",
+    "group": "Assessment",
+    "summary": "A short derivation followed by a numeric answer check with units and tolerance.",
+    "primitives": ["Derivation", "NumericAnswer"],
+    "usage": "import { Derivation, NumericAnswer } from \"@faraday-academy/kit/blocks\";\n\nexport function NumericGate() {\n  return (\n    <>\n      <Derivation\n        title=\"Impulse\"\n        steps={[\n          { tex: \"J = F \\\\Delta t\", note: \"Definition\" },\n          { tex: \"J = \\\\Delta p\", note: \"Equals change in momentum\" },\n        ]}\n      />\n      <NumericAnswer\n        question=\"A 2 kg cart moves at 3 m/s. What is its momentum?\"\n        answer={6}\n        tolerance={0.1}\n        unit=\"kg·m/s\"\n      />\n    </>\n  );\n}"
+  },
+  {
+    "name": "CompareModes",
+    "slug": "comparemodes",
+    "group": "Explanation",
+    "summary": "Segmented mode switch driving a side-by-side Compare — contrast two regimes of the same model.",
+    "primitives": ["Segmented", "Compare"],
+    "usage": "import { Segmented, Compare } from \"@faraday-academy/kit/blocks\";\n\nexport function CompareModes() {\n  const [mode, setMode] = useState(\"elastic\");\n  return (\n    <>\n      <Segmented\n        label=\"Collision type\"\n        value={mode}\n        onChange={setMode}\n        options={[\n          { value: \"elastic\", label: \"Elastic\" },\n          { value: \"inelastic\", label: \"Inelastic\" },\n        ]}\n      />\n      <Compare\n        items={[\n          { value: \"elastic\", label: \"Elastic\", content: \"KE conserved\" },\n          { value: \"inelastic\", label: \"Inelastic\", content: \"KE not conserved\" },\n        ]}\n      />\n    </>\n  );\n}"
+  }
+]

@@ -95,7 +95,7 @@ function summaryFromSource(source, name) {
   return comments || `${name} lesson block.`;
 }
 
-function loadBlocks() {
+function loadPrimitives() {
   const blocksRoot = join(root, "packages/kit/blocks");
   const index = readFileSync(join(blocksRoot, "index.ts"), "utf8");
   const matches = [
@@ -103,24 +103,64 @@ function loadBlocks() {
       /export\s+\{\s*([A-Za-z0-9_]+)(?:[^}]*)\}\s+from\s+"\.\/([^"]+)";/g,
     ),
   ];
-  return matches
-    .map((match) => {
-      const name = match[1];
-      const moduleName = match[2];
-      const sourcePath = [".tsx", ".ts"]
-        .map((extension) => join(blocksRoot, `${moduleName}${extension}`))
-        .find(existsSync);
-      const source = sourcePath ? readFileSync(sourcePath, "utf8") : "";
-      return {
-        name,
-        slug: name.toLowerCase(),
-        group: blockGroups[name.toLowerCase()] ?? "More",
-        summary: summaryFromSource(source, name),
-        importPath: "@faraday-academy/kit/blocks",
-        sourcePath: sourcePath ? relative(root, sourcePath) : null,
-      };
-    })
-    .sort((a, b) => a.name.localeCompare(b.name));
+  return matches.map((match) => {
+    const name = match[1];
+    const moduleName = match[2];
+    const sourcePath = [".tsx", ".ts"]
+      .map((extension) => join(blocksRoot, `${moduleName}${extension}`))
+      .find(existsSync);
+    const source = sourcePath ? readFileSync(sourcePath, "utf8") : "";
+    return {
+      name,
+      slug: name.toLowerCase(),
+      kind: "primitive",
+      group: blockGroups[name.toLowerCase()] ?? "More",
+      summary: summaryFromSource(source, name),
+      importPath: "@faraday-academy/kit/blocks",
+      sourcePath: sourcePath ? relative(root, sourcePath) : null,
+      primitives: [],
+      usage: null,
+    };
+  });
+}
+
+function loadPatterns() {
+  const patternsPath = join(root, "packages/registry/patterns.json");
+  if (!existsSync(patternsPath)) return [];
+  const patterns = readJson(patternsPath);
+  if (!Array.isArray(patterns)) {
+    throw new Error("packages/registry/patterns.json must be an array");
+  }
+  return patterns.map((pattern) => {
+    if (!pattern?.name || !pattern?.slug) {
+      throw new Error("each pattern needs name and slug");
+    }
+    return {
+      name: pattern.name,
+      slug: String(pattern.slug).toLowerCase(),
+      kind: "pattern",
+      group: pattern.group ?? "More",
+      summary: pattern.summary ?? `${pattern.name} lesson pattern.`,
+      importPath: pattern.importPath ?? null,
+      sourcePath: pattern.sourcePath ?? "packages/registry/patterns.json",
+      primitives: Array.isArray(pattern.primitives) ? pattern.primitives : [],
+      usage: pattern.usage ?? null,
+    };
+  });
+}
+
+function loadBlocks() {
+  const primitives = loadPrimitives();
+  const patterns = loadPatterns();
+  const seen = new Set();
+  for (const block of [...primitives, ...patterns]) {
+    const key = block.slug;
+    if (seen.has(key)) {
+      throw new Error(`duplicate block slug: ${key}`);
+    }
+    seen.add(key);
+  }
+  return [...primitives, ...patterns].sort((a, b) => a.name.localeCompare(b.name));
 }
 
 function loadExamples() {

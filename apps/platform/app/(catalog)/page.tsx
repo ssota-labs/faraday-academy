@@ -66,7 +66,9 @@ export default function HomePage() {
               <div className="flex items-center justify-between border-t border-border px-4 py-3">
                 <div>
                   <p className="font-mono text-sm font-semibold">{block.name}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{block.group}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {block.kind} · {block.group}
+                  </p>
                 </div>
                 <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-1" />
               </div>

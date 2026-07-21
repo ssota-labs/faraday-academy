@@ -12,13 +12,18 @@ export interface PackCatalogItem {
   installCommand: string;
 }
 
+export type BlockKind = "primitive" | "pattern";
+
 export interface BlockCatalogItem {
   name: string;
   slug: string;
+  kind: BlockKind;
   group: string;
   summary: string;
-  importPath: string;
+  importPath: string | null;
   sourcePath: string | null;
+  primitives: string[];
+  usage: string | null;
 }
 
 export interface ExampleCatalogItem {
@@ -41,4 +46,12 @@ export function packByName(name: string) {
 
 export function blockBySlug(slug: string) {
   return catalog.blocks.find((block) => block.slug === slug);
+}
+
+export function blockByName(name: string) {
+  const normalized = name.toLowerCase();
+  return catalog.blocks.find(
+    (block) =>
+      block.name.toLowerCase() === normalized || block.slug === normalized,
+  );
 }
